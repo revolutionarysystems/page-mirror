@@ -28,15 +28,14 @@ while (document.firstChild) {
 var initialized = false;
 
 socket.on('initialize', function(args) {
-	console.log("initialize");
-	console.log(args);
 	if (initialized == false) {
 		try {
 			initialized = true;
+			base = args.base;
 			mirror.initialize(args.rootId, args.children);
-			console.log("init done");
+			window.scrollTo(args.pageXOffset, args.pageYOffset);
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 		}
 	} else {
 		if (args.new == true) {
@@ -45,8 +44,8 @@ socket.on('initialize', function(args) {
 	}
 });
 socket.on('applyChanged', function(args) {
-	console.log("applyChanged");
-	console.log(args);
 	mirror.applyChanged(args.removed, args.addedOrMoved, args.attributes, args.text);
-	console.log("apply done");
+});
+socket.on('scroll', function(args){
+	window.scrollTo(args.x, args.y);
 });

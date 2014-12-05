@@ -1,0 +1,32 @@
+{
+	"name": "page-mirror-client",
+	"version": "0.1.0-SNAPSHOT",
+	"artifacts":[
+		{
+			"files": [
+				{"src":""}
+			]
+		}
+	],
+	"repositories": {
+		"distribution": [
+			{
+				"url": "http://build.revsys.co.uk/haven-repository"
+			}
+		]
+	},
+    "dependencies": [
+        {
+            "name": "socket.io-client",
+            "version": "1.0.6",
+            "includes": ["socket.io.js"]
+        },
+        {
+            "name": "mutation-summary",
+            "version": "0.1.0"
+        },{
+            "name": "mutation-summary-tree-mirror",
+            "version": "0.1.0"
+        }
+    ]
+}

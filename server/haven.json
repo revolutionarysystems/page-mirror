@@ -1,0 +1,24 @@
+{
+	"name": "page-mirror-server",
+	"version": "0.1.0-SNAPSHOT",
+	"artifacts":[
+		{
+			"files": [
+				{"dist":""}
+			]
+		}
+	],
+	"repositories": {
+		"distribution": [
+			{
+				"url": "http://build.revsys.co.uk/haven-repository"
+			}
+		]
+	},
+    "dependencies": [
+		{
+            "name": "mutation-summary-tree-mirror",
+            "version": "0.1.0"
+        }
+    ]
+}

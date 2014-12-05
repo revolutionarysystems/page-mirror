@@ -32,11 +32,12 @@ socketServer.on('connection', function(socket){
   	socket.broadcast.to(sessionId).emit('monitoringSession');
   })
   socket.on('initialize', function(args){
-    console.log('initialize: ' + args);
     socket.broadcast.to(sessionId).emit('initialize', args);
   });
   socket.on('applyChanged', function(args){
-    console.log('applyChanged: ' + args);
     socket.broadcast.to(sessionId).emit('applyChanged', args);
+  });
+  socket.on('scroll', function(args){
+    socket.broadcast.to(sessionId).emit('scroll', args);
   });
 });

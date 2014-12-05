@@ -1,2 +1,12 @@
 /dist
 /node_modules
+/client/haven_artifacts
+/client/node_modules
+/demo/build
+/demo/node_modules
+/mirror/node_modules
+/mirror/haven_artifacts
+/server/dist
+/server/haven_artifacts
+/server/node_modules
+/sublime
