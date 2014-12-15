@@ -42,6 +42,8 @@ var PageMirrorClient = function(options) {
           base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
           rootId: rootId,
           children: children,
+          viewportWidth: window.document.documentElement.clientWidth,
+          viewportHeight: window.document.documentElement.clientHeight,
           pageXOffset: window.pageXOffset,
           pageYOffset: window.pageYOffset,
           new: !initialized
@@ -72,5 +74,19 @@ var PageMirrorClient = function(options) {
         y: window.pageYOffset
       });
     }, 500);
+  });
+
+  var resizeTimeoutId = false;
+
+  window.addEventListener("resize", function(e) {
+    if (resizeTimeoutId !== false) {
+      window.clearTimeout(resizeTimeoutId);
+    }
+    resizeTimeoutId = window.setTimeout(function() {
+      socket.emit('resize', {
+        width: window.document.documentElement.clientWidth,
+        height: window.document.documentElement.clientHeight,
+      });
+    }, 1000);
   });
 }

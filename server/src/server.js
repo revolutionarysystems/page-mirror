@@ -40,4 +40,7 @@ socketServer.on('connection', function(socket){
   socket.on('scroll', function(args){
     socket.broadcast.to(sessionId).emit('scroll', args);
   });
+  socket.on('resize', function(args){
+    socket.broadcast.to(sessionId).emit('resize', args);
+  });
 });

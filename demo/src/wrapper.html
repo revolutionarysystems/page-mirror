@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Page Mirror</title>
+		<script type="text/javascript">
+			var contentSize = {width: 0, height: 0};
+			function resize(width, height){
+				contentSize = {width: width, height: height};
+				console.log("resize: " + width + " x " + height);
+				var availableWidth = window.document.documentElement.clientWidth;
+				console.log("availableWidth = " + availableWidth);
+				var availableHeight = window.document.documentElement.clientHeight * 0.9;
+				console.log("availableHeight = " + availableHeight);
+				var xPadding = availableWidth * 0.05;
+				console.log("xPadding = " + xPadding);
+				availableWidth = availableWidth - (xPadding*2);
+				console.log("availableWidth = " + availableWidth);
+				var ratio = availableWidth / width;
+				console.log("ratio = " + ratio);
+				var trueWidth = availableWidth;
+				console.log("trueWidth = " + trueWidth);
+				var trueHeight = height * ratio;
+				console.log("trueHeight = " + trueHeight);
+				if(trueHeight > availableHeight){
+					ratio = availableHeight / height;
+					console.log("ratio = " + ratio);
+					trueHeight = availableHeight;
+					console.log("trueHeight = " + trueHeight);
+					trueWidth = width * ratio;
+					console.log("trueWidth = " + trueWidth);
+					xPadding = (availableWidth - trueWidth)/2
+					console.log("xPadding = " + xPadding);
+				}
+				document.getElementById("frame").width = width;
+				if(ratio >= 1){
+					document.getElementById("frame").height = trueHeight;
+				}else{
+					document.getElementById("frame").height = height;
+				}
+				var wrapCss = "margin-left: " + xPadding + "px;"
+				console.log("wrapCSS = " + wrapCss);
+				document.getElementById("wrap").style.cssText = wrapCss;
+				var frameCss = "-ms-zoom: " + ratio + "; -moz-transform: scale(" + ratio + "); -moz-transform-origin: 0px 0; -o-transform: scale(" + ratio + "); -o-transform-origin: 0 0; -webkit-transform: scale(" + ratio + "); -webkit-transform-origin: 0 0;"
+				console.log("frameCss = " + frameCss);
+				document.getElementById("frame").style.cssText = frameCss;
+			}
+
+			window.addEventListener("resize", function(){
+				resize(contentSize.width, contentSize.height);
+			});
+		</script>
+	</head>
+	<body>
+		<style>
+		    #wrap { padding: 0; top:0px; overflow: hidden; pointer-events: none;}
+		    #frame { top:0px; }
+		</style>
+		<div id="wrap">
+			<script type="text/javascript">
+				document.write("<iframe id='frame' frameborder='0' src='mirror.html#" + window.location.hash.substring(1) + "'> </iframe>");
+			</script>
+		</div>
+	</body>
+</html>

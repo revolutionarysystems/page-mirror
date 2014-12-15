@@ -34,6 +34,9 @@ socket.on('initialize', function(args) {
 			base = args.base;
 			mirror.initialize(args.rootId, args.children);
 			window.scrollTo(args.pageXOffset, args.pageYOffset);
+			if(window.parent){
+				window.parent.resize(args.viewportWidth, args.viewportHeight);
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -48,4 +51,9 @@ socket.on('applyChanged', function(args) {
 });
 socket.on('scroll', function(args){
 	window.scrollTo(args.x, args.y);
+});
+socket.on('resize', function(args){
+	if(window.parent){
+		window.parent.resize(args.width, args.height);
+	}
 });
