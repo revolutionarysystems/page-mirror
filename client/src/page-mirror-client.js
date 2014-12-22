@@ -35,31 +35,37 @@ var PageMirrorClient = function(options) {
     id: sessionId
   });
 
-  socket.on("monitoringSession", function() {
-    var mirrorClient = new TreeMirrorClient(window.document, {
-      initialize: function(rootId, children) {
-        socket.emit('initialize', {
-          base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
-          rootId: rootId,
-          children: children,
-          viewportWidth: window.document.documentElement.clientWidth,
-          viewportHeight: window.document.documentElement.clientHeight,
-          pageXOffset: window.pageXOffset,
-          pageYOffset: window.pageYOffset,
-          new: !initialized
-        });
-        initialized = true;
-      },
+  var mirrorClient;
 
-      applyChanged: function(removed, addedOrMoved, attributes, text) {
-        socket.emit('applyChanged', {
-          removed: removed,
-          addedOrMoved: addedOrMoved,
-          attributes: attributes,
-          text: text
-        });
-      }
-    });
+  socket.on("monitoringSession", function() {
+    if (!mirrorClient) {
+      mirrorClient = new TreeMirrorClient(window.document, {
+        initialize: function(rootId, children) {
+          socket.emit('initialize', {
+            base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
+            rootId: rootId,
+            children: children,
+            viewportWidth: window.document.documentElement.clientWidth,
+            viewportHeight: window.document.documentElement.clientHeight,
+            pageXOffset: window.pageXOffset,
+            pageYOffset: window.pageYOffset,
+            new: !initialized
+          });
+          initialized = true;
+        },
+
+        applyChanged: function(removed, addedOrMoved, attributes, text) {
+          socket.emit('applyChanged', {
+            removed: removed,
+            addedOrMoved: addedOrMoved,
+            attributes: attributes,
+            text: text
+          });
+        }
+      });
+    } else {
+      mirrorClient.reinitialize();
+    }
   });
 
   var scrollTimeoutId = false;
