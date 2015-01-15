@@ -5,11 +5,14 @@
 		<script src="tree-mirror.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="page-mirror-client.js"></script>
+		<script>
+			var pmc = new PageMirrorClient({window: window});
+		</script>
 	</head>
 	<body>
 		<h1>Page 2</h1>
 		<script>
-			document.write("<a href='mirror/#" + sessionId + "' target='_blank'>Open Mirror<a>");
+			
 		</script>
 		<a href="index.html">Home</a>
 		<div>

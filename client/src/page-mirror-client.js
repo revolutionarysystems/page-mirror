@@ -95,4 +95,8 @@ var PageMirrorClient = function(options) {
       });
     }, 1000);
   });
+
+  window.addEventListener("unload", function(e){
+    socket.emit('unload');
+  });
 }

@@ -43,4 +43,7 @@ socketServer.on('connection', function(socket){
   socket.on('resize', function(args){
     socket.broadcast.to(sessionId).emit('resize', args);
   });
+  socket.on('unload', function(args){
+    socket.broadcast.to(sessionId).emit('unload', args);
+  });
 });
