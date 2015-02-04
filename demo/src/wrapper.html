@@ -55,6 +55,11 @@
 		    #wrap { padding: 0; top:0px; overflow: hidden; pointer-events: none;}
 		    #frame { top:0px; }
 		</style>
+		<div>
+			<button onclick="frames[0].pm.recordSession()">Record</button>
+			<button onclick="frames[0].pm.stopRecordingSession()">Stop Recording</button>
+			<button onclick="frames[0].pm.replaySession()">Playback</button>
+		</div>
 		<div id="wrap">
 			<script type="text/javascript">
 				document.write("<iframe id='frame' frameborder='0' src='mirror.html#" + window.location.hash.substring(1) + "'> </iframe>");
