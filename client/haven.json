@@ -1,6 +1,6 @@
 {
 	"name": "page-mirror-client",
-	"version": "0.1.0-SNAPSHOT",
+	"master": "../haven.json",
 	"artifacts":[
 		{
 			"files": [
@@ -8,13 +8,6 @@
 			]
 		}
 	],
-	"repositories": {
-		"distribution": [
-			{
-				"url": "http://build.revsys.co.uk/haven-repository"
-			}
-		]
-	},
     "dependencies": [
         {
             "name": "socket.io-client",
@@ -23,10 +16,10 @@
         },
         {
             "name": "mutation-summary",
-            "version": "0.2.0-SNAPSHOT"
+            "version": "0.2.0"
         },{
             "name": "mutation-summary-tree-mirror",
-            "version": "0.2.0-SNAPSHOT"
+            "version": "0.2.0"
         }
     ]
 }

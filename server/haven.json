@@ -1,6 +1,6 @@
 {
 	"name": "page-mirror-server",
-	"version": "0.1.0-SNAPSHOT",
+	"master": "../haven.json",
 	"artifacts":[
 		{
 			"files": [
@@ -8,13 +8,6 @@
 			]
 		}
 	],
-	"repositories": {
-		"distribution": [
-			{
-				"url": "http://build.revsys.co.uk/haven-repository"
-			}
-		]
-	},
     "dependencies": [
 		
     ]

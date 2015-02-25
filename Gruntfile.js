@@ -1,68 +1,35 @@
 module.exports = function(grunt) {
 
+  function getModules(cmd) {
+    return {
+      'client': cmd,
+      'mirror': cmd,
+      'server': cmd
+    };
+  }
+
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    clean: ["demo-dist"],
-    copy: {
-      demo: {
-        files: [{
-          expand: true,
-          cwd: 'client',
-          src: ['**/*'],
-          dest: 'dist/static/'
-        },{
-          expand: true,
-          cwd: 'demo',
-          src: ['**/*'],
-          dest: 'dist/static/'
-        },{
-          expand: true,
-          cwd: 'lib',
-          src: ['**/*'],
-          dest: 'dist/static/'
-        },{
-          expand: true,
-          cwd: 'mirror',
-          src: ['**/*'],
-          dest: 'dist/static/mirror/'
-        },{
-          expand: true,
-          cwd: 'server',
-          src: ['**/*'],
-          dest: 'dist/'
-        }]
-      }
-    },compress: {
-      demo: {
-        options: {
-          mode: "tgz",
-          archive: 'dist/page-mirror-demo.tar.gz'
-        },
-        files: [{
-            expand: true,
-            src: ['dist/**/*'],
-            dest: '',
-          },{
-            expand: true,
-            src: ['node_modules/**/*'],
-            dest: '',
-          }
-        ]
-      }
-    }
+    subgrunt: {
+      options: {
+        limit: 1
+      },
+      dist: getModules("dist"),
+      deploy: getModules("deploy"),
+      ci: getModules("ci")
+    },
   });
 
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-compress');
-  grunt.loadNpmTasks('grunt-haven');
+  grunt.loadNpmTasks('grunt-subgrunt');
 
-  grunt.registerTask('build', ['clean', 'copy']);
-  grunt.registerTask('dist', ['clean', 'copy', 'compress']);
+  // Tasks
+  grunt.registerTask('dist', ['subgrunt:dist']);
+  grunt.registerTask('deploy', ['subgrunt:deploy']);
+
+  grunt.registerTask('ci', ['subgrunt:ci']);
 
   // Default task(s).
-  grunt.registerTask('default', ['build']);
+  grunt.registerTask('default', ['deploy']);
 
 };

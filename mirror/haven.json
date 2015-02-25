@@ -1,20 +1,13 @@
 {
 	"name": "page-mirror",
-	"version": "0.1.0-SNAPSHOT",
+	"master": "../haven.json",
 	"artifacts":[
 		{
 			"files": [
 				{"src":"."}
 			]
 		}
-	],
-	"repositories": {
-		"distribution": [
-			{
-				"url": "http://build.revsys.co.uk/haven-repository"
-			}
-		]
-	},
+	],	
     "dependencies": [
     	{
             "name": "socket.io-client",
@@ -23,7 +16,7 @@
         },
 		{
             "name": "mutation-summary-tree-mirror",
-            "version": "0.2.0-SNAPSHOT"
+            "version": "0.2.0"
         }
     ]
 }
