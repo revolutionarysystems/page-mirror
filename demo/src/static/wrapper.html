@@ -48,6 +48,8 @@
 			window.addEventListener("resize", function(){
 				resize(contentSize.width, contentSize.height);
 			});
+
+			var recordingId;
 		</script>
 	</head>
 	<body>
@@ -57,8 +59,8 @@
 		</style>
 		<div>
 			<button onclick="frames[0].pm.recordSession()">Record</button>
-			<button onclick="frames[0].pm.stopRecordingSession()">Stop Recording</button>
-			<button onclick="frames[0].pm.replaySession()">Playback</button>
+			<button onclick="frames[0].pm.stopRecordingSession(function(id){recordingId = id;})">Stop Recording</button>
+			<button onclick="frames[0].pm.replayRecording(recordingId, function(){alert('Playback Finished')})">Playback</button>
 		</div>
 		<div id="wrap">
 			<script type="text/javascript">

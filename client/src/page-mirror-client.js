@@ -2,9 +2,9 @@ var PageMirrorClient = function(options) {
 
   var socket;
   if (options.url) {
-    socket = io(options.url);
+    socket = io.connect(options.url);
   } else {
-    socket = io();
+    socket = io.connect();
   }
 
   var window = window;

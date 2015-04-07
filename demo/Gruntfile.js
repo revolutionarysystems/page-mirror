@@ -23,7 +23,7 @@ module.exports = function(grunt) {
           dest: 'build/static/'
         },{
           expand: true,
-          cwd: 'src',
+          cwd: 'src/static',
           src: ['**/*'],
           dest: 'build/static/'
         },{
@@ -39,6 +39,11 @@ module.exports = function(grunt) {
         },{
           expand: true,
           cwd: '../server/src',
+          src: ['**/*'],
+          dest: 'build/'
+        },{
+          expand: true,
+          cwd: 'src/server',
           src: ['**/*'],
           dest: 'build/'
         }]

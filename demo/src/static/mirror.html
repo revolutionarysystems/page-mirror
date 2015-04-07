@@ -4,4 +4,6 @@
 <script src="mirror.js"></script>
 <script>
 	var pm = new PageMirror();
+	pm.mirrorSession(window.location.hash.substring(1));
+	//pm.replayRecording(window.location.hash.substring(1));
 </script>

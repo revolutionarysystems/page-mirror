@@ -5,16 +5,33 @@ var PageMirror = function(options) {
 
 	var socket;
 	if (options.url) {
-		socket = io(options.url);
+		socket = io.connect(options.url);
 	} else {
-		socket = io();
+		socket = io.connect();
 	}
 
-	var sessionId = window.location.hash.substring(1);
+	this.mirrorSession = function(sessionId) {
+		socket.emit("monitorSession", {
+			id: sessionId
+		});
+	}
 
-	socket.emit("monitorSession", {
-		id: sessionId
-	});
+	this.recordSession = function() {
+		socket.emit("recordSession");
+	}
+
+	this.stopRecordingSession = function(callback) {
+		socket.emit("stopRecordingSession", {}, callback);
+	}
+
+	this.replayRecording = function(id, callback){
+		socket.emit("getRecordedSession", {
+			id: id
+		}, function(session) {
+			initialized = false;
+			applyEvents(session, callback);
+		});
+	}
 
 	var mirror = new TreeMirror(document, {
 		createElement: function(tagName) {
@@ -98,39 +115,21 @@ var PageMirror = function(options) {
 		eventListeners.unload(args);
 	});
 
-	this.recordSession = function(){
-		socket.emit("recordSession", {
-			id: sessionId
-		});
-	}
-
-	this.stopRecordingSession = function(){
-		socket.emit("stopRecordingSession", {
-			id: sessionId
-		});
-	}
-
-	this.replaySession = function(id) {
-		var id = id || sessionId;
-		socket.emit("getRecordedSession", {
-			id: id
-		}, function(session) {
-			initialized = false;
-			applyEvents(session);
-		});
-	}
-
-	function applyEvents(events) {
+	function applyEvents(events, callback) {
 		var event = events.shift();
 		if (event) {
 			if (event.event == "wait") {
 				console.log("Waiting " + event.args.time + "ms");
 				setTimeout(function() {
-					applyEvents(events);
+					applyEvents(events, callback);
 				}, event.args.time);
 			} else {
 				eventListeners[event.event](event.args);
-				applyEvents(events);
+				applyEvents(events, callback);
+			}
+		}else{
+			if(callback){
+				callback();
 			}
 		}
 	}
