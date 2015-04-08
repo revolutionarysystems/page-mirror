@@ -11,7 +11,10 @@
     "dependencies": [
     	{
 			"name": "socket.io-client",
-			"version": "0.9.16"
+			"version": "0.9.16",
+			"includes": [
+				"dist/socket.io.js"
+			]
 		},
 		{
             "name": "mutation-summary-tree-mirror",
