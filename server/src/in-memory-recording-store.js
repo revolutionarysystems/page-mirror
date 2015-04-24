@@ -10,6 +10,10 @@ var InMemoryRecordingStore = function() {
     callback(null, recordings[id]);
   }
 
+  this.find = function(callback){
+  	callback(null, recordings);
+  }
+
 }
 
 module.exports = InMemoryRecordingStore;

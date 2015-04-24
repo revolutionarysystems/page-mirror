@@ -28,4 +28,4 @@ var socketServer = io.listen(webServer, {
 //   }
 // });
 
-new PageMirrorServer(socketServer, new InMemoryRecordingStore());
+new PageMirrorServer(socketServer, new InMemoryRecordingStore(), {autorecord: false});

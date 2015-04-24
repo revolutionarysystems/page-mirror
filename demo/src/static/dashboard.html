@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html ng-app="ngApp">
+	<head>
+		<title>Page Mirror Dashboard</title>
+		<script src="angular.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="admin.js"></script>
+		<script src="dashboard-controllers.js"></script>
+	</head>
+	<body ng-controller="DashboardCtrl">
+		<h3>Recorded</h3>
+		<table>
+			<tr ng-repeat="recording in recordedSessions">
+				<td>{{recording.id}}</td>
+				<td>{{recording.session}}</td>
+				<td>{{recording.startTime | date:'medium'}}</td>
+				<td>{{recording.endTime | date:'medium'}}</td>
+				<td><button ng-click="playRecording(recording)">Play</button></td>
+			</tr>
+		</table>
+		<h3>Recording</h3>
+		<table>
+			<tr ng-repeat="recording in recordingSessions">
+				<td>{{recording.id}}</td>
+				<td>{{recording.session}}</td>
+				<td>{{recording.startTime | date:'medium'}}</td>
+				<td>{{recording.lastEventTime | date:'medium'}}</td>
+				<td><button ng-click="viewSession(recording.session)">View Live</button></td>
+			</tr>
+		</table>
+		<button ng-click="getRecordings()">Refresh</button>
+	</body>
+</html>

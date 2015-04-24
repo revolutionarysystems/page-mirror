@@ -7,7 +7,9 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="page-mirror-client.js"></script>
 		<script>
-			var pmc = new PageMirrorClient({window: window});
+			var pmc = new PageMirrorClient({window: window, record:true, onInit: function(recording){
+				console.log(recording);
+			}});
 		</script>
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
@@ -35,6 +37,31 @@
 		<button onclick="test2()">Test 2</button>
 		<button onclick="test3()">Test 3</button>
 		<a href="page2.html">Page 2</a>
+		<form>
+			Input 1: <input type="text" name="testInput1" placeholder="Test Input 1"/>
+			<br/>
+			Input 2: <input type="text" name="testInput2" placeholder="Test Input 2"/>
+			<br/>
+			A: <input type="checkbox" name="testCheck1" value="A"/>
+			<br/>
+			B: <input type="checkbox" name="testCheck1" value="B"/>
+			<br/>
+			C: <input type="checkbox" name="testCheck1" value="C"/>
+			<br/>
+			I: <input type="radio" name="testRadio1" value="i"/>
+			<br/>
+			J: <input type="radio" name="testRadio1" value="j"/>
+			<br/>
+			K: <input type="radio" name="testRadio1" value="k"/>
+			<br/>
+			<textarea name="testText1"></textarea>
+			<br/>
+			<select name="testSelect1">
+				<option>X</option>
+				<option>Y</option>
+				<option>Z</option>
+			</select>
+		</form>
 		<div id="test1">
 
 		</div>

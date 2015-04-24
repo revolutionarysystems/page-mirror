@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <script src="tree-mirror.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="event-handler.js"></script>
 <script src="mirror.js"></script>
 <script>
 	var pm = new PageMirror();
 	pm.mirrorSession(window.location.hash.substring(1));
 	//pm.replayRecording(window.location.hash.substring(1));
 </script>
+<div id="mouse"> </div>

@@ -38,6 +38,11 @@ module.exports = function(grunt) {
           dest: 'build/static/'
         },{
           expand: true,
+          cwd: '../player/src',
+          src: ['**/*'],
+          dest: 'build/static/'
+        },{
+          expand: true,
           cwd: '../server/src',
           src: ['**/*'],
           dest: 'build/'
@@ -46,6 +51,11 @@ module.exports = function(grunt) {
           cwd: 'src/server',
           src: ['**/*'],
           dest: 'build/'
+        },{
+          expand: true,
+          cwd: 'node_modules/angular',
+          src: ['angular.js'],
+          dest: 'build/static/'
         }]
       }
     },compress: {

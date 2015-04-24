@@ -7,10 +7,9 @@ var PageMirrorClient = function(options) {
     socket = io.connect();
   }
 
-  var window = window;
-  if (options.window) {
-    window = options.window;
-  }
+  var window = options.window || window;
+  options.record = options.record || false;
+  options.onInit = options.onInit || function() {};
 
   function generateUUID() {
     var d = new Date().getTime();
@@ -32,8 +31,9 @@ var PageMirrorClient = function(options) {
   var initialized = false;
 
   socket.emit("createSession", {
-    id: sessionId
-  });
+    id: sessionId,
+    record: options.record
+  }, options.onInit);
 
   var mirrorClient;
 
@@ -49,6 +49,7 @@ var PageMirrorClient = function(options) {
             viewportHeight: window.document.documentElement.clientHeight,
             pageXOffset: window.pageXOffset,
             pageYOffset: window.pageYOffset,
+            url: window.location.href,
             new: !initialized
           });
           initialized = true;
@@ -71,32 +72,127 @@ var PageMirrorClient = function(options) {
   var scrollTimeoutId = false;
 
   window.addEventListener("scroll", function(e) {
-    if (scrollTimeoutId !== false) {
-      window.clearTimeout(scrollTimeoutId);
-    }
-    scrollTimeoutId = window.setTimeout(function() {
+    squash("scroll", 500, function() {
       socket.emit('scroll', {
         x: window.pageXOffset,
         y: window.pageYOffset
       });
-    }, 500);
+    });
   });
 
   var resizeTimeoutId = false;
 
   window.addEventListener("resize", function(e) {
-    if (resizeTimeoutId !== false) {
-      window.clearTimeout(resizeTimeoutId);
-    }
-    resizeTimeoutId = window.setTimeout(function() {
+    squash("resize", 1000, function() {
       socket.emit('resize', {
         width: window.document.documentElement.clientWidth,
         height: window.document.documentElement.clientHeight,
       });
-    }, 1000);
+    })
   });
 
-  window.addEventListener("unload", function(e){
+  window.addEventListener("unload", function(e) {
     socket.emit('unload');
+  });
+
+  window.addEventListener("mousemove", function(e) {
+    throttle("mousemove", 200, function() {
+      if (initialized) {
+        socket.emit('mousemove', {
+          x: e.x,
+          y: e.y
+        });
+      }
+    });
+  });
+
+  window.addEventListener("mousedown", function(e) {
+    console.log(e);
+    console.log({x: e.x, y: e.y});
+    socket.emit('mousedown', {
+      x: e.x,
+      y: e.y
+    });
+  });
+
+  window.addEventListener("mouseup", function(e) {
+    socket.emit('mouseup', {
+      x: e.x,
+      y: e.y
+    });
+  });
+
+  squashTimeouts = {};
+
+  function squash(event, threshold, callback) {
+    window.clearTimeout(squashTimeouts[event]);
+    squashTimeouts[event] = window.setTimeout(function() {
+      callback();
+    }, threshold);
+  }
+
+  var throttlePeriods = {};
+  var throttleTimeouts = {};
+
+  function throttle(event, period, callback) {
+    var now = new Date().getTime();
+    window.clearTimeout(throttleTimeouts[event]);
+    var nextEventTime = throttlePeriods[event] || now;
+    var diff = nextEventTime - now;
+    var f = function() {
+      callback();
+      throttlePeriods[event] = now + period;
+    }
+    if (diff <= 0) {
+      f();
+    } else {
+      throttleTimeouts[event] = window.setTimeout(function() {
+        f();
+      }, diff);
+    }
+  }
+
+  function forEach(obj, f) {
+    for (var i = 0; i < obj.length; i++) {
+      f(obj[i]);
+    }
+  }
+
+  var checkedRadios = {};
+
+  window.addEventListener("load", function() {
+    forEach(window.document.getElementsByTagName("input"), function(input) {
+      input.addEventListener("change", function() {
+        input.setAttribute("value", input.value);
+        if (input.checked) {
+          input.setAttribute("checked", true);
+          if (input.type == "radio") {
+            var prev = checkedRadios[input.name];
+            if (prev) {
+              prev.removeAttribute("checked");
+            }
+            checkedRadios[input.name] = input;
+          }
+        } else {
+          input.removeAttribute("checked");
+        }
+      });
+    });
+    forEach(window.document.getElementsByTagName("textarea"), function(input) {
+      input.addEventListener("change", function() {
+        input.innerHTML = input.value;
+      });
+    });
+    forEach(window.document.getElementsByTagName("select"), function(input) {
+      input.addEventListener("change", function() {
+        forEach(input.options, function(option) {
+          if (option.selected) {
+            option.setAttribute("selected", true);
+          } else {
+            option.removeAttribute("selected");
+          }
+        });
+      });
+    });
   });
 }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<script src="tree-mirror.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="event-handler.js"></script>
+<script src="player.js"></script>
+<script>
+	var player = new PageMirrorPlayer();
+	var init = function(){
+		if(parent && parent.window != window && parent.window.init){
+			parent.window.init();
+		}
+	};
+	var before = function(){
+		if(parent && parent.window != window && parent.window.before){
+			parent.window.init();
+		}
+	};
+	var update = function(){
+		if(parent && parent.window != window && parent.window.update){
+			parent.window.update();
+		}
+	}
+	var after = function(){
+		if(parent && parent.window != window && parent.window.after){
+			parent.window.after();
+		}	
+	}
+	init();
+	player.play(window.location.hash.substring(1), {before: before, update: update, after: after});
+</script>

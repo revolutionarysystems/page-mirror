@@ -11,3 +11,5 @@
 /server/node_modules
 /sublime
 /demo/dist
+/player/node_modules
+/player/haven_artifacts
