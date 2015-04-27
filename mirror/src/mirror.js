@@ -1,3 +1,5 @@
+include "event-handler.js"
+
 var PageMirror = function(options) {
 
 	options = options || {};

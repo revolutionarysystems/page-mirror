@@ -4,14 +4,15 @@
   "scripts": {
     "start": "node server.js"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "engines": {
     "node": ">=0.8"
   },
   "devDependencies": {
-    "grunt-cli": "~0.1.13",
     "grunt": "~0.4.5",
-    "grunt-haven": "~0.2.0"
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-haven": "~0.2.0",
+    "grunt-includes": "^0.5.1"
   }
 }

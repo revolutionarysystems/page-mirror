@@ -33,12 +33,7 @@ module.exports = function(grunt) {
           dest: 'build/static/'
         },{
           expand: true,
-          cwd: '../mirror/src',
-          src: ['**/*'],
-          dest: 'build/static/'
-        },{
-          expand: true,
-          cwd: '../player/src',
+          cwd: '../mirror/dist',
           src: ['**/*'],
           dest: 'build/static/'
         },{

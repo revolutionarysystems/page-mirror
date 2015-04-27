@@ -73,8 +73,14 @@
 			Speed: {{player.speed}} &nbsp;
 			State: {{player.state}} &nbsp;
 			Start: {{player.session.startTime | date: 'medium'}} &nbsp;
+			<span ng-if="player.session.status == 'recorded'">
 			End: {{player.session.endTime | date: 'medium'}} &nbsp;
 			Duration: {{(player.session.endTime - player.session.startTime) / 1000}}s &nbsp;
+			</span>
+			<span ng-if="player.session.status == 'recording'">
+			End: Still In Progress &nbsp;
+			Duration: {{(player.session.lastEventTime - player.session.startTime) / 1000}}s &nbsp;
+			</span>
 			Events: <button ng-click="player.skipToEvent(player.session.processedEvents.length - 1)">Previous</button> {{player.session.processedEvents.length}}/{{player.session.events.length}} <button ng-click="player.skipToEvent(player.session.processedEvents.length + 1)">Next</button> &nbsp;
 			<br/>
 			Pages: <span ng-repeat="page in player.session.pages"><button ng-click="player.skipToPage($index)">{{page.url}}</button> &nbsp;</span>

@@ -5,9 +5,11 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
   // Setup default options
   options = options || {};
   options.autorecord = options.autorecord || false;
-  options.recordingTimeout = options.recordingTimeout || 10000;
+  options.sessionTimeout = options.sessionTimeout || 1800000;
+  options.loadingTimeout = options.loadingTimeout || 30000;
 
-  var recordingSessions = {};
+  var recordings = {};
+  var recordingsBySessionId = {};
 
   socketServer.on('connection', function(socket) {
 
@@ -24,12 +26,12 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       sessionId = args.id;
       socket.join(sessionId);
       var result = null;
-      if(options.autorecord == true || args.record == true){
+      if (options.autorecord == true || args.record == true) {
         recordSession();
-        result = recordingSessions[sessionId];
+        result = recordingsBySessionId[sessionId];
       }
       socketServer.sockets.in(sessionId).emit('monitoringSession');
-      if(callback){
+      if (callback) {
         callback(result);
       }
     });
@@ -39,18 +41,18 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
         recordSession();
         socket.join(sessionId);
         socket.broadcast.to(sessionId).emit('monitoringSession');
-        if(callback){
-          callback(recordingSessions[sessionId]);
+        if (callback) {
+          callback(recordingsBySessionId[sessionId]);
         }
       }
     })
 
     socket.on("stopRecordingSession", function(args, callback) {
-      recordingSession = recordingSessions[sessionId];
+      recordingSession = recordingsBySessionId[sessionId];
       if (recordingSession) {
         stopRecordingSession(recordingSession);
         callback(recordingSession.id);
-      }else{
+      } else {
         callback(null);
       }
     });
@@ -107,50 +109,52 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
     });
 
     socket.on('getRecordedSession', function(args, callback) {
-      recordingStore.retrieve(args.id, function(err, session) {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null, session);
-        }
-      });
+      var recording = recordings[args.id];
+      if (recording) {
+        callback(null, recording);
+      } else {
+        recordingStore.retrieve(args.id, callback);
+      }
     });
 
-    socket.on('getRecordedSessions', function(callback){
-      recordingStore.find(function(err, sessions){
-        if(err){
+    socket.on('getRecordedSessions', function(callback) {
+      recordingStore.find(function(err, sessions) {
+        if (err) {
           callback([]);
-        }else{
+        } else {
           callback(sessions);
         }
       })
     })
 
-    socket.on('getRecordingSessions', function(callback){
-      callback(recordingSessions);
+    socket.on('getRecordingSessions', function(callback) {
+      callback(recordingsBySessionId);
     })
 
-    function recordSession(){
+    function recordSession() {
       if (!isRecording()) {
         console.log("Recording session " + sessionId);
-        recordingSessions[sessionId] = {
+        var recording = {
           id: uuid.v4(),
+          status: "recording",
           session: sessionId,
           startTime: new Date().getTime(),
           lastEventTime: new Date().getTime(),
           events: [],
           pages: []
-        };
+        }
+        recordingsBySessionId[sessionId] = recording;
+        recordings[recording.id] = recording;
       }
     }
 
     function isRecording() {
-      return recordingSessions[sessionId] != null;
+      return recordingsBySessionId[sessionId] != null;
     }
 
     function recordEvent(event, args) {
       var now = new Date().getTime();
-      var recordedSession = recordingSessions[sessionId];
+      var recordedSession = recordingsBySessionId[sessionId];
       if (recordedSession) {
         recordedSession.events.push({
           event: "wait",
@@ -163,28 +167,38 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
           event: event,
           args: args
         });
-        if(event == "initialize" && (recordedSession.pages.length == 0 || args.new)){
+        recordedSession.lastEvent = event;
+        if (event == "initialize" && (recordedSession.pages.length == 0 || args.new)) {
           recordedSession.pages.push({
             url: args.url,
-            index: recordedSession.events.length-1
+            index: recordedSession.events.length - 1
           });
         }
       }
     }
   });
 
-  function stopRecordingSession(recordingSession){
+  function stopRecordingSession(recordingSession) {
     console.log("Stopped recording session " + recordingSession.session);
-    recordingSession.endTime = new Date().getTime();
+    recordingSession.events.push({
+      event: "end",
+      args: {}
+    });
+    recordingSession.endTime = recordingSession.lastEventTime;
+    recordingSession.status = "recorded";
     recordingStore.persist(recordingSession);
-    delete recordingSessions[recordingSession.session];
+    delete recordingsBySessionId[recordingSession.session];
+    delete recordings[recordingSession.id];
   }
 
-  setInterval(function(){
+  setInterval(function() {
     var now = new Date().getTime();
-    for(id in recordingSessions){
-      var session = recordingSessions[id];
-      if(now - session.lastEventTime >= options.recordingTimeout){
+    for (id in recordingsBySessionId) {
+      var session = recordingsBySessionId[id];
+      if (now - session.lastEventTime >= options.sessionTimeout) {
+        stopRecordingSession(session);
+      }
+      if (session.lastEvent == "unload" && (now - session.lastEventTime >= options.loadingTimeout)) {
         stopRecordingSession(session);
       }
     }

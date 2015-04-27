@@ -25,6 +25,7 @@
 				<td>{{recording.session}}</td>
 				<td>{{recording.startTime | date:'medium'}}</td>
 				<td>{{recording.lastEventTime | date:'medium'}}</td>
+				<td><button ng-click="playRecording(recording)">Play</button></td>
 				<td><button ng-click="viewSession(recording.session)">View Live</button></td>
 			</tr>
 		</table>
