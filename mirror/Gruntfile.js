@@ -3,6 +3,11 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    haven: {
+      ci: {
+        cache: "./haven_cache"
+      }
+    },
     clean: ["dist/*"],
     includes: {
       js: {
@@ -24,11 +29,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-includes');
 
-  grunt.registerTask('build', ['clean', 'haven:update', 'includes']);
-  grunt.registerTask('dist', ['build']);
+  grunt.registerTask('build', ['clean', 'includes']);
+  grunt.registerTask('dist', ['haven:update', 'build']);
 
   grunt.registerTask('deploy', ['dist', 'haven:deploy']);
-  grunt.registerTask('ci', ['dist', 'haven:deployOnly']);
+  grunt.registerTask('ci', ['haven:ci:update', 'build', 'haven:deployOnly']);
 
   // Default task(s).
   grunt.registerTask('default', ['dist']);

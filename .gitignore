@@ -13,3 +13,5 @@
 /demo/dist
 /player/node_modules
 /player/haven_artifacts
+/client/haven_cache
+/mirror/haven_cache

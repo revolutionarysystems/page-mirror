@@ -3,6 +3,11 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    haven: {
+      ci: {
+        cache: "./haven_cache"
+      }
+    },
     clean: ["dist"],
     compress: {
       dist: {
@@ -36,11 +41,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-haven');
 
-  grunt.registerTask('build', ['haven:update', 'clean']);
-  grunt.registerTask('dist', ['build', 'compress']);
+  grunt.registerTask('build', ['clean', 'compress']);
+  grunt.registerTask('dist', ['haven:update', 'build']);
 
   grunt.registerTask('deploy', ['dist', 'haven:deploy']);
-  grunt.registerTask('ci', ['dist', 'haven:deployOnly']);
+  grunt.registerTask('ci', ['haven:ci:update', 'build', 'haven:deployOnly']);
 
   // Default task(s).
   grunt.registerTask('default', ['dist']);
