@@ -107,8 +107,6 @@ var PageMirrorClient = function(options) {
   });
 
   window.addEventListener("mousedown", function(e) {
-    console.log(e);
-    console.log({x: e.x, y: e.y});
     socket.emit('mousedown', {
       x: e.x,
       y: e.y
