@@ -158,6 +158,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       if (recordedSession) {
         recordedSession.events.push({
           event: "wait",
+          time: now,
           args: {
             time: now - recordedSession.lastEventTime
           }
@@ -165,12 +166,17 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
         recordedSession.lastEventTime = now;
         recordedSession.events.push({
           event: event,
+          time: now,
           args: args
         });
         recordedSession.lastEvent = event;
         if (event == "initialize" && (recordedSession.pages.length == 0 || args.new)) {
+          if(recordedSession.pages.length > 0){
+            recordedSession.pages[recordedSession.pages.length-1].endTime = now;
+          }
           recordedSession.pages.push({
             url: args.url,
+            startTime: now,
             index: recordedSession.events.length - 1
           });
         }
@@ -182,8 +188,10 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
     console.log("Stopped recording session " + recordingSession.session);
     recordingSession.events.push({
       event: "end",
+      time: recordingSession.lastEventTime,
       args: {}
     });
+    recordingSession.pages[recordingSession.pages.length-1].endTime = recordingSession.lastEventTime;
     recordingSession.endTime = recordingSession.lastEventTime;
     recordingSession.status = "recorded";
     recordingStore.persist(recordingSession);

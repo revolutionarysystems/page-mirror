@@ -81,9 +81,11 @@
 			End: Still In Progress &nbsp;
 			Duration: {{(player.session.lastEventTime - player.session.startTime) / 1000}}s &nbsp;
 			</span>
+			Time: <span ng-if="player.session.processedEvents.length > 0">{{(player.session.processedEvents[player.session.processedEvents.length-1].time - player.session.startTime)/1000}}s</span><span ng-if="player.session.processedEvents.length == 0">0s</span> &nbsp;
+			<input type="text" ng-model="context.time"/><button ng-click="player.skipToTime(context.time)">Go To Time</button> &nbsp;
 			Events: <button ng-click="player.skipToEvent(player.session.processedEvents.length - 1)">Previous</button> {{player.session.processedEvents.length}}/{{player.session.events.length}} <button ng-click="player.skipToEvent(player.session.processedEvents.length + 1)">Next</button> &nbsp;
 			<br/>
-			Pages: <span ng-repeat="page in player.session.pages"><button ng-click="player.skipToPage($index)">{{page.url}}</button> &nbsp;</span>
+			Pages: <span ng-repeat="page in player.session.pages"><button ng-click="player.skipToPage($index)">{{page.url}} ({{(page.endTime - page.startTime) / 1000}}s)</button> &nbsp;</span>
 		</div>
 		<div id="wrap">
 			<script type="text/javascript">

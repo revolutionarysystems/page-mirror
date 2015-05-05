@@ -107,6 +107,22 @@ var PageMirrorPlayer = function(options) {
 		this.session.outstandingEvents = this.session.events.slice(index);
 	}
 
+	this.skipToTime = function(time){
+		this.skipToTimestamp(new Date(this.session.startTime + time*1));
+	}
+
+	this.skipToTimestamp = function(time){
+		var timestamp = time.getTime();
+		var event = this.session.events[0];
+		for(var i=1; i<this.session.events.length; i++){
+			var e = this.session.events[i];
+			if(e.time > timestamp){
+				this.skipToEvent(i);
+				break;
+			}
+		}
+	}
+
 	var nextEventTimeout;
 
 	function handleEvents(events) {
