@@ -40,11 +40,11 @@ var PageMirrorEventHandler = function(options) {
 					window.parent.resize(args.viewportWidth, args.viewportHeight);
 				}
 				var mouse = document.createElement("div");
-				mouse.id = "mouse";
+				mouse.id = "revsys-pagemirror-mouse";
 				document.body.appendChild(mouse);
 				var style = document.createElement('style')
 				style.type = 'text/css'
-				style.innerHTML = '#mouse{' +
+				style.innerHTML = '#revsys-pagemirror-mouse{' +
 				    'border:1px solid red;' +
 				    'width:10px;' +
 				    'height:10px;' +
@@ -53,7 +53,7 @@ var PageMirrorEventHandler = function(options) {
 				    'top:0px;' +
 				    'left:0px;' +
 				'}' +
-				'#mouse.pressed{' +
+				'#revsys-pagemirror-mouse.pressed{' +
 				    'background-color:red;' +
 				'}';
 				document.getElementsByTagName('head')[0].appendChild(style)
@@ -78,20 +78,20 @@ var PageMirrorEventHandler = function(options) {
 	}
 
 	eventListeners.mousemove = function(args) {
-		var mouse = document.getElementById("mouse");
+		var mouse = document.getElementById("revsys-pagemirror-mouse");
 		mouse.style.top = args.y + "px";
 		mouse.style.left = args.x + "px";
 	}
 
 	eventListeners.mousedown = function(args) {
-		var mouse = document.getElementById("mouse");
+		var mouse = document.getElementById("revsys-pagemirror-mouse");
 		mouse.style.top = args.y + "px";
 		mouse.style.left = args.x + "px";
 		mouse.className = "pressed";
 	}
 
 	eventListeners.mouseup = function(args) {
-		var mouse = document.getElementById("mouse");
+		var mouse = document.getElementById("revsys-pagemirror-mouse");
 		mouse.style.top = args.y + "px";
 		mouse.style.left = args.x + "px";
 		mouse.className = "";
@@ -103,6 +103,16 @@ var PageMirrorEventHandler = function(options) {
 
 	eventListeners.end = function(args){
 
+	}
+
+	eventListeners.visibilitychange = function(args){
+		if (window.parent && window.parent.visibilitychange) {
+			window.parent.visibilitychange(args.visibility);
+		}
+	}
+
+	this.setListener = function(type, listener){
+		eventListeners[type] = listener;
 	}
 
 	this.reset = function(){

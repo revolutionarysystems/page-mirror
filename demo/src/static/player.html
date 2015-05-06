@@ -4,6 +4,7 @@
 		<title>Page Mirror Player</title>
 		<script src="angular.js"></script>
 		<script src="player-controllers.js"></script>
+		<link rel="stylesheet" type="text/css" href="player.css">
 		<script type="text/javascript">
 			var contentSize = {width: 0, height: 0};
 			function resize(width, height){
@@ -53,6 +54,10 @@
 
 			function after(){
 				scope.after();
+			}
+
+			function visibilitychange(visibility){
+				document.getElementById("frame").setAttribute("visibility", visibility);
 			}
 		</script>
 	</head>

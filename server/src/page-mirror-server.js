@@ -99,6 +99,11 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       socket.broadcast.to(sessionId).emit('mouseup', args);
     });
 
+    socket.on('visibilitychange', function(args) {
+      recordEvent("visibilitychange", args);
+      socket.broadcast.to(sessionId).emit('visibilitychange', args);
+    });
+
     socket.on('unload', function(args) {
       recordEvent("unload", args);
       socket.broadcast.to(sessionId).emit('unload', args);

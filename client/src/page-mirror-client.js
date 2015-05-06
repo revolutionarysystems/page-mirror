@@ -120,6 +120,12 @@ var PageMirrorClient = function(options) {
     });
   });
 
+  window.document.addEventListener("visibilitychange", function(){
+    socket.emit('visibilitychange', {
+      visibility: window.document.visibilityState
+    })
+  })
+
   squashTimeouts = {};
 
   function squash(event, threshold, callback) {
