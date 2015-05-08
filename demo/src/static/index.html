@@ -7,7 +7,7 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="page-mirror-client.js"></script>
 		<script>
-			var pmc = new PageMirrorClient({window: window, record:true, onInit: function(recording){
+			var pmc = new PageMirrorClient({window: window, record:true, trackHashChange: true, onInit: function(recording){
 				console.log(recording);
 			}});
 		</script>
@@ -36,6 +36,8 @@
 		<button onclick="test1()">Test 1</button>
 		<button onclick="test2()">Test 2</button>
 		<button onclick="test3()">Test 3</button>
+		<button onclick="virtualPage()">Virtual Page</button>
+		<button onclick="changeHash()">Change Hash</button>
 		<a href="page2.html">Page 2</a>
 		<form>
 			Input 1: <input type="text" name="testInput1" placeholder="Test Input 1"/>
@@ -126,6 +128,12 @@
 			}
 			function test3(){
 				document.body.style["background-color"] = '#'+Math.floor(Math.random()*16777215).toString(16);
+			}
+			function virtualPage(){
+				pmc.virtualPage();
+			}
+			function changeHash(){
+				window.location = '#'+Math.floor(Math.random()*16777215).toString(16);
 			}
 		</script>
 	</body>

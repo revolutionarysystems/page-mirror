@@ -80,11 +80,15 @@ var PageMirrorPlayer = function(options) {
 		this.state = "Loading";
 		var page = this.session.pages[index];
 		var eventIndex = page.index;
-		this.session.processedEvents = this.session.events.slice(0, eventIndex);
-		this.session.outstandingEvents = this.session.events.slice(eventIndex);
-		window.clearTimeout(nextEventTimeout);
-		eventHandler.reset();
-		handleEvents(this.session.outstandingEvents);
+		if(page.virtual == true){
+			this.skipToEvent(eventIndex);
+		}else{
+			this.session.processedEvents = this.session.events.slice(0, eventIndex);
+			this.session.outstandingEvents = this.session.events.slice(eventIndex);
+			window.clearTimeout(nextEventTimeout);
+			eventHandler.reset();
+			handleEvents(this.session.outstandingEvents);
+		}
 	}
 
 	this.skipToEvent = function(index) {

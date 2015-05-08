@@ -1,5 +1,7 @@
 var PageMirrorClient = function(options) {
 
+  var $this = this;
+
   var socket;
   if (options.url) {
     socket = io.connect(options.url);
@@ -42,6 +44,7 @@ var PageMirrorClient = function(options) {
       mirrorClient = new TreeMirrorClient(window.document, {
         initialize: function(rootId, children) {
           socket.emit('initialize', {
+            visibility: window.document.visibilityState,
             base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
             rootId: rootId,
             children: children,
@@ -124,7 +127,20 @@ var PageMirrorClient = function(options) {
     socket.emit('visibilitychange', {
       visibility: window.document.visibilityState
     })
-  })
+  });
+
+  this.virtualPage = function(url){
+    url = url || window.location.href;
+    socket.emit('virtualPage', {
+      url: url
+    });
+  }
+
+  if(options.trackHashChange == true){
+    window.addEventListener("hashchange", function(){
+      $this.virtualPage();
+    })
+  }
 
   squashTimeouts = {};
 

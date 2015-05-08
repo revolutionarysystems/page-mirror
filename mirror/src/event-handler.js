@@ -56,7 +56,8 @@ var PageMirrorEventHandler = function(options) {
 				'#revsys-pagemirror-mouse.pressed{' +
 				    'background-color:red;' +
 				'}';
-				document.getElementsByTagName('head')[0].appendChild(style)
+				document.getElementsByTagName('head')[0].appendChild(style);
+				eventListeners.visibilitychange({visibility: args.visibility});
 			} catch (e) {
 				console.error(e);
 			}
@@ -98,6 +99,10 @@ var PageMirrorEventHandler = function(options) {
 	}
 
 	eventListeners.unload = function(args) {
+		
+	}
+
+	eventListeners.virtualPage = function(args) {
 		
 	}
 

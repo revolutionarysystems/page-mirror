@@ -104,6 +104,11 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       socket.broadcast.to(sessionId).emit('visibilitychange', args);
     });
 
+    socket.on('virtualPage', function(args){
+      recordEvent('virtualPage', args);
+      socket.broadcast.to(sessionId).emit('virtualPage', args);
+    })
+
     socket.on('unload', function(args) {
       recordEvent("unload", args);
       socket.broadcast.to(sessionId).emit('unload', args);
@@ -175,12 +180,13 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
           args: args
         });
         recordedSession.lastEvent = event;
-        if (event == "initialize" && (recordedSession.pages.length == 0 || args.new)) {
+        if (event == "virtualPage" || (event == "initialize" && (recordedSession.pages.length == 0 || args.new))) {
           if(recordedSession.pages.length > 0){
             recordedSession.pages[recordedSession.pages.length-1].endTime = now;
           }
           recordedSession.pages.push({
             url: args.url,
+            virtual: event == "virtualPage",
             startTime: now,
             index: recordedSession.events.length - 1
           });
