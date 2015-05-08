@@ -166,6 +166,9 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       var now = new Date().getTime();
       var recordedSession = recordingsBySessionId[sessionId];
       if (recordedSession) {
+        if(recordedSession.pages.length == 0 && event != "initialize"){
+          return;
+        }
         recordedSession.events.push({
           event: "wait",
           time: now,
