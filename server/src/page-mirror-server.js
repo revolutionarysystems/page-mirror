@@ -1,6 +1,12 @@
-var PageMirrorServer = function(socketServer, recordingStore, options) {
+var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) {
 
   var uuid = require("node-uuid");
+  var bodyParser = require('body-parser')
+
+  httpApp.use(bodyParser.json()); // to support JSON-encoded bodies
+  httpApp.use(bodyParser.urlencoded({ // to support URL-encoded bodies
+    extended: true
+  }));
 
   // Setup default options
   options = options || {};
@@ -14,6 +20,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
   socketServer.on('connection', function(socket) {
 
     var sessionId;
+    var accountId;
 
     console.log('a user connected');
 
@@ -24,6 +31,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
     socket.on("createSession", function(args, callback) {
       console.log("Creating session " + args.id);
       sessionId = args.id;
+      accountId = args.account;
       socket.join(sessionId);
       var result = null;
       if (options.autorecord == true || args.record == true) {
@@ -104,7 +112,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       socket.broadcast.to(sessionId).emit('visibilitychange', args);
     });
 
-    socket.on('virtualPage', function(args){
+    socket.on('virtualPage', function(args) {
       recordEvent('virtualPage', args);
       socket.broadcast.to(sessionId).emit('virtualPage', args);
     })
@@ -128,7 +136,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
     });
 
     socket.on('getRecordedSessions', function(callback) {
-      recordingStore.find(function(err, sessions) {
+      recordingStore.find({}, function(err, sessions) {
         if (err) {
           callback([]);
         } else {
@@ -143,18 +151,26 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
 
     function recordSession() {
       if (!isRecording()) {
-        console.log("Recording session " + sessionId);
-        var recording = {
-          id: uuid.v4(),
-          status: "recording",
-          session: sessionId,
-          startTime: new Date().getTime(),
-          lastEventTime: new Date().getTime(),
-          events: [],
-          pages: []
-        }
-        recordingsBySessionId[sessionId] = recording;
-        recordings[recording.id] = recording;
+        recordingStore.isBlacklisted(accountId, function(blacklisted) {
+          if (blacklisted) {
+            console.log("Account blacklisted");
+            return;
+          } else {
+            console.log("Recording session " + sessionId);
+            var recording = {
+              id: uuid.v4(),
+              account: accountId,
+              status: "recording",
+              session: sessionId,
+              startTime: new Date().getTime(),
+              lastEventTime: new Date().getTime(),
+              events: [],
+              pages: []
+            }
+            recordingsBySessionId[sessionId] = recording;
+            recordings[recording.id] = recording;
+          }
+        });
       }
     }
 
@@ -166,7 +182,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       var now = new Date().getTime();
       var recordedSession = recordingsBySessionId[sessionId];
       if (recordedSession) {
-        if(recordedSession.pages.length == 0 && event != "initialize"){
+        if (recordedSession.pages.length == 0 && event != "initialize") {
           return;
         }
         recordedSession.events.push({
@@ -184,8 +200,8 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
         });
         recordedSession.lastEvent = event;
         if (event == "virtualPage" || (event == "initialize" && (recordedSession.pages.length == 0 || args.new))) {
-          if(recordedSession.pages.length > 0){
-            recordedSession.pages[recordedSession.pages.length-1].endTime = now;
+          if (recordedSession.pages.length > 0) {
+            recordedSession.pages[recordedSession.pages.length - 1].endTime = now;
           }
           recordedSession.pages.push({
             url: args.url,
@@ -205,7 +221,7 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       time: recordingSession.lastEventTime,
       args: {}
     });
-    recordingSession.pages[recordingSession.pages.length-1].endTime = recordingSession.lastEventTime;
+    recordingSession.pages[recordingSession.pages.length - 1].endTime = recordingSession.lastEventTime;
     recordingSession.endTime = recordingSession.lastEventTime;
     recordingSession.status = "recorded";
     recordingStore.persist(recordingSession);
@@ -225,6 +241,36 @@ var PageMirrorServer = function(socketServer, recordingStore, options) {
       }
     }
   }, 10000);
+
+  httpApp.post("/blacklist", function(req, res) {
+    recordingStore.blacklist(req.body.account);
+    res.status(204).end();
+  });
+
+  httpApp.post("/clearBlacklist", function(req, res) {
+    recordingStore.clearBlacklist();
+    res.status(204).end();
+  });
+
+  httpApp.get("/searchRecordings", function(req, res) {
+    recordingStore.find(JSON.parse(req.query.query), function(err, recordings) {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.send(recordings);
+      }
+    });
+  });
+
+  httpApp.get("/countRecordings", function(req, res) {
+    recordingStore.count(JSON.parse(req.query.query), function(err, count) {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.send(count+"");
+      }
+    });
+  });
 }
 
 module.exports = PageMirrorServer;

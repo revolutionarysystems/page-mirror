@@ -19,13 +19,13 @@ var socketServer = io.listen(webServer, {
   "log level": 1
 });
 
-// MongoClient.connect("mongodb://localhost:27017/recordedSessions", function(err, db) {
-//   if (err) {
-//     console.log("Unable to connect to db: " + err);
-//   } else {
-//     console.log("Connected to db");
-//     new PageMirrorServer(socketServer, new MongoDBRecordingStore(db.collection("recordings")));
-//   }
-// });
+MongoClient.connect("mongodb://localhost:27017/recordedSessions", function(err, db) {
+  if (err) {
+    console.log("Unable to connect to db: " + err);
+  } else {
+    console.log("Connected to db");
+    new PageMirrorServer(socketServer, httpApp, new MongoDBRecordingStore(db.collection("recordings"), db.collection("blacklist")));
+  }
+});
 
-new PageMirrorServer(socketServer, new InMemoryRecordingStore(), {autorecord: false});
+//new PageMirrorServer(socketServer, httpApp, new InMemoryRecordingStore(), {autorecord: false});

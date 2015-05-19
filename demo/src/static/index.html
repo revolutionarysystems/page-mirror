@@ -7,7 +7,11 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="page-mirror-client.js"></script>
 		<script>
-			var pmc = new PageMirrorClient({window: window, record:true, trackHashChange: true, onInit: function(recording){
+			var account = window.location.hash.substring(1);
+			if(account == ""){
+				account = "abc123";
+			}
+			var pmc = new PageMirrorClient({window: window, account: account, record:true, trackHashChange: true, onInit: function(recording){
 				console.log(recording);
 			}});
 		</script>

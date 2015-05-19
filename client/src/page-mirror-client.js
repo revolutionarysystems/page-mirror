@@ -12,6 +12,7 @@ var PageMirrorClient = function(options) {
   var window = options.window || window;
   options.record = options.record || false;
   options.onInit = options.onInit || function() {};
+  options.account = options.account || "";
 
   function generateUUID() {
     var d = new Date().getTime();
@@ -34,6 +35,7 @@ var PageMirrorClient = function(options) {
 
   socket.emit("createSession", {
     id: sessionId,
+    account: options.account,
     record: options.record
   }, options.onInit);
 
