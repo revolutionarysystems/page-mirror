@@ -5,8 +5,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "easyrtc": "*",
     "express": "*",
+    "body-parser": "^1.12.4",
+    "mongodb": "~1.4.31",
+    "node-uuid": "~1.4.2",
     "socket.io": "0.9.16"
   },
   "engines": {

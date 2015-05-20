@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         },{
           expand: true,
           cwd: "node_modules",
-          src: ['easyrtc/**/*', 'express/**/*', 'socket.io/**/*'],
+          src: ['mongodb/**/*', 'body-parser/**/*', 'node-uuid/**/*', 'express/**/*', 'socket.io/**/*'],
           dest: 'node_modules/'
         }]
       }
