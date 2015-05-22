@@ -13,6 +13,7 @@ var PageMirrorClient = function(options) {
   options.record = options.record || false;
   options.onInit = options.onInit || function() {};
   options.account = options.account || "";
+  options.ignoreAttribute = options.ignoreAttribute || "mirrorIgnore";
 
   function generateUUID() {
     var d = new Date().getTime();
@@ -125,21 +126,21 @@ var PageMirrorClient = function(options) {
     });
   });
 
-  window.document.addEventListener("visibilitychange", function(){
+  window.document.addEventListener("visibilitychange", function() {
     socket.emit('visibilitychange', {
       visibility: window.document.visibilityState
     })
   });
 
-  this.virtualPage = function(url){
+  this.virtualPage = function(url) {
     url = url || window.location.href;
     socket.emit('virtualPage', {
       url: url
     });
   }
 
-  if(options.trackHashChange == true){
-    window.addEventListener("hashchange", function(){
+  if (options.trackHashChange == true) {
+    window.addEventListener("hashchange", function() {
       $this.virtualPage();
     })
   }
@@ -184,37 +185,43 @@ var PageMirrorClient = function(options) {
 
   window.addEventListener("load", function() {
     forEach(window.document.getElementsByTagName("input"), function(input) {
-      input.addEventListener("change", function() {
-        input.setAttribute("value", input.value);
-        if (input.checked) {
-          input.setAttribute("checked", true);
-          if (input.type == "radio") {
-            var prev = checkedRadios[input.name];
-            if (prev) {
-              prev.removeAttribute("checked");
+      if (!input.hasAttribute(options.ignoreAttribute)) {
+        input.addEventListener("change", function() {
+          input.setAttribute("value", input.value);
+          if (input.checked) {
+            input.setAttribute("checked", true);
+            if (input.type == "radio") {
+              var prev = checkedRadios[input.name];
+              if (prev) {
+                prev.removeAttribute("checked");
+              }
+              checkedRadios[input.name] = input;
             }
-            checkedRadios[input.name] = input;
-          }
-        } else {
-          input.removeAttribute("checked");
-        }
-      });
-    });
-    forEach(window.document.getElementsByTagName("textarea"), function(input) {
-      input.addEventListener("change", function() {
-        input.innerHTML = input.value;
-      });
-    });
-    forEach(window.document.getElementsByTagName("select"), function(input) {
-      input.addEventListener("change", function() {
-        forEach(input.options, function(option) {
-          if (option.selected) {
-            option.setAttribute("selected", true);
           } else {
-            option.removeAttribute("selected");
+            input.removeAttribute("checked");
           }
         });
-      });
+      }
+    });
+    forEach(window.document.getElementsByTagName("textarea"), function(input) {
+      if (!input.hasAttribute(options.ignoreAttribute)) {
+        input.addEventListener("change", function() {
+          input.innerHTML = input.value;
+        });
+      }
+    });
+    forEach(window.document.getElementsByTagName("select"), function(input) {
+      if (!input.hasAttribute(options.ignoreAttribute)) {
+        input.addEventListener("change", function() {
+          forEach(input.options, function(option) {
+            if (option.selected) {
+              option.setAttribute("selected", true);
+            } else {
+              option.removeAttribute("selected");
+            }
+          });
+        });
+      }
     });
   });
 }
