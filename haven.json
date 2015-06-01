@@ -1,18 +1,1 @@
-{
-	"name": "page-mirror-client-parent",
-	"version": ["0.2.0-SNAPSHOT"],
-	"isMaster": true,
-	"modules": ["client", "mirror", "server"],
-	"repositories": {
-		"distribution": [{
-			"url": "http://build.revsys.co.uk/haven-repository"
-		}],
-        "dependencies": [{
-            "type": "haven",
-            "url": "http://build.revsys.co.uk/haven-repository"
-        }, {
-            "type": "haven",
-            "url": "http://internal.echo-central.com/haven-repository"
-        }]
-	}
-}
+{"name":"page-mirror-client-parent","version":"0.3.0-SNAPSHOT","isMaster":true,"modules":["client","mirror","server"],"repositories":{"distribution":[{"url":"http://build.revsys.co.uk/haven-repository"}],"dependencies":[{"type":"haven","url":"http://build.revsys.co.uk/haven-repository"},{"type":"haven","url":"http://internal.echo-central.com/haven-repository"}]}}
