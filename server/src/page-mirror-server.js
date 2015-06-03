@@ -185,13 +185,15 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
         if (recordedSession.pages.length == 0 && event != "initialize") {
           return;
         }
-        recordedSession.events.push({
-          event: "wait",
-          time: now,
-          args: {
-            time: now - recordedSession.lastEventTime
-          }
-        });
+        if(recordedSession.pages.length > 0){
+          recordedSession.events.push({
+            event: "wait",
+            time: now,
+            args: {
+              time: now - recordedSession.lastEventTime
+            }
+          });
+        }
         recordedSession.lastEventTime = now;
         recordedSession.events.push({
           event: event,
