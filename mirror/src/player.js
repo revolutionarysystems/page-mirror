@@ -50,17 +50,7 @@ var PageMirrorPlayer = function(options) {
 	}
 
 	this.restart = function() {
-		if (this.session) {
-			window.clearTimeout(nextEventTimeout);
-			eventHandler.reset();
-			this.session.processedEvents = [];
-			this.session.outstandingEvents = this.session.events;
-			$this.state = "Playing";
-			if (beforeCallback) {
-				beforeCallback(this.session);
-			}
-			handleEvents(this.session.events.slice());
-		}
+		this.skipToEvent(0);
 	}
 
 	this.setSpeed = function(speed) {
@@ -77,50 +67,46 @@ var PageMirrorPlayer = function(options) {
 	}
 
 	this.skipToPage = function(index) {
-		this.state = "Loading";
 		var page = this.session.pages[index];
 		var eventIndex = page.index;
-		if(page.virtual == true){
-			this.skipToEvent(eventIndex);
-		}else{
-			this.session.processedEvents = this.session.events.slice(0, eventIndex);
-			this.session.outstandingEvents = this.session.events.slice(eventIndex);
-			window.clearTimeout(nextEventTimeout);
-			eventHandler.reset();
-			handleEvents(this.session.outstandingEvents);
-		}
+		this.skipToEvent(eventIndex);
 	}
 
 	this.skipToEvent = function(index) {
-		this.pause();
 		window.clearTimeout(nextEventTimeout);
 		eventHandler.reset();
 		var eventsToSkip = [];
-		if(index < this.session.processedEvents.length){
-			eventsToSkip = this.session.events.slice(0, index);
-		}else{
-			eventsToSkip = this.session.events.slice(this.session.processedEvents.length, index);
+		index = index*1;
+		if (index <= this.session.processedEvents.length) {
+			eventsToSkip = this.session.events.slice(0, index+1);
+		} else {
+			eventsToSkip = this.session.events.slice(this.session.processedEvents.length, index+1);
 		}
-		for(var i=0; i<eventsToSkip.length; i++){
+		console.log(eventsToSkip);
+		for (var i = 0; i < eventsToSkip.length; i++) {
 			var event = eventsToSkip[i];
-			if(event.event != "wait"){
+			if (event.event != "wait") {
 				eventHandler.handleEvent(event.event, event.args);
 			}
 		}
-		this.session.processedEvents = this.session.events.slice(0, index);
-		this.session.outstandingEvents = this.session.events.slice(index);
+		this.session.processedEvents = this.session.events.slice(0, index+1);
+		this.session.outstandingEvents = this.session.events.slice(index+1);
+		if(updateCallback){
+			updateCallback();
+		}
+		handleEvents(this.session.outstandingEvents);
 	}
 
-	this.skipToTime = function(time){
-		this.skipToTimestamp(new Date(this.session.startTime + time*1));
+	this.skipToTime = function(time) {
+		this.skipToTimestamp(new Date(this.session.startTime + time * 1));
 	}
 
-	this.skipToTimestamp = function(time){
+	this.skipToTimestamp = function(time) {
 		var timestamp = time.getTime();
 		var event = this.session.events[0];
-		for(var i=1; i<this.session.events.length; i++){
+		for (var i = 1; i < this.session.events.length; i++) {
 			var e = this.session.events[i];
-			if(e.time > timestamp){
+			if (e.time > timestamp) {
 				this.skipToEvent(i);
 				break;
 			}
@@ -141,13 +127,19 @@ var PageMirrorPlayer = function(options) {
 						nextEventTimeout = setTimeout(function() {
 							handleEvents(events);
 						}, event.args.time / $this.speed);
+						if (updateCallback) {
+							updateCallback();
+						}
 					} else {
+						if (updateCallback) {
+							updateCallback();
+						}
 						handleEvents(events);
 					}
 				} else {
 					console.log(event.event);
 					eventHandler.handleEvent(event.event, event.args);
-					if($this.state == "Loading" && event.event == "initialize"){
+					if ($this.state == "Loading" && event.event == "initialize") {
 						$this.pause();
 					}
 					if (updateCallback) {
