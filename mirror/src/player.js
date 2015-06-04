@@ -139,8 +139,13 @@ var PageMirrorPlayer = function(options) {
 				} else {
 					console.log(event.event);
 					eventHandler.handleEvent(event.event, event.args);
+					var tmp = document.children[0].style.webkitTransform;
+					if(!tmp || tmp == ""){
+						tmp = "scale(1)";
+					}
+					document.children[0].style.webkitTransform = tmp;
 					if ($this.state == "Loading" && event.event == "initialize") {
-						$this.pause();
+						//$this.pause();
 					}
 					if (updateCallback) {
 						updateCallback();
