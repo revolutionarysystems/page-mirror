@@ -35,21 +35,44 @@ var PageMirrorPlayer = function(options) {
 			} else {
 				eventHandler.reset();
 				session.processedEvents = [];
-				session.outstandingEvents = session.events;
+				session.preExistingEvents = options.event ? session.events.slice(0, options.event) : [];
+				session.events = options.event ? session.events.slice(options.event) : session.events;
+				var diff = session.events[0].time - session.startTime;
+				session.startTime = session.events[0].time;
+				session.outstandingEvents = session.events.slice();
+				if (options.event) {
+					var pages = [];
+					var prevPage = null;
+					for (var i = 0; i < session.pages.length; i++) {
+						var page = session.pages[i];
+						if (page.index < options.event) {
+							prevPage = page;
+						} else {
+							page.index = page.index - options.event;
+							pages.push(page);
+						}
+					}
+					if (prevPage != null) {
+						prevPage.index = 0;
+						prevPage.startTime = session.startTime;
+						pages = [prevPage].concat(pages);
+					}
+					session.pages = pages;
+				}
 				$this.session = session;
 				beforeCallback = options.before;
 				updateCallback = options.update;
 				afterCallback = options.after;
-				$this.state = "Loading";
 				if (beforeCallback) {
 					beforeCallback(session);
 				}
-				handleEvents(session.events.slice());
+				$this.skipToEvent(0);
 			}
 		});
 	}
 
 	this.restart = function() {
+		this.state = "Playing";
 		this.skipToEvent(0);
 	}
 
@@ -76,25 +99,29 @@ var PageMirrorPlayer = function(options) {
 		window.clearTimeout(nextEventTimeout);
 		eventHandler.reset();
 		var eventsToSkip = [];
-		index = index*1;
+		index = index * 1;
 		if (index <= this.session.processedEvents.length) {
-			eventsToSkip = this.session.events.slice(0, index+1);
+			eventsToSkip = this.session.events.slice(0, index + 1);
 		} else {
-			eventsToSkip = this.session.events.slice(this.session.processedEvents.length, index+1);
+			eventsToSkip = this.session.events.slice(this.session.processedEvents.length, index + 1);
 		}
-		console.log(eventsToSkip);
-		for (var i = 0; i < eventsToSkip.length; i++) {
-			var event = eventsToSkip[i];
+		skipEvents(this.session.preExistingEvents);
+		skipEvents(eventsToSkip);
+		this.session.processedEvents = this.session.events.slice(0, index + 1);
+		this.session.outstandingEvents = this.session.events.slice(index + 1);
+		if (updateCallback) {
+			updateCallback();
+		}
+		handleEvents(this.session.outstandingEvents);
+	}
+
+	function skipEvents(events) {
+		for (var i = 0; i < events.length; i++) {
+			var event = events[i];
 			if (event.event != "wait") {
 				eventHandler.handleEvent(event.event, event.args);
 			}
 		}
-		this.session.processedEvents = this.session.events.slice(0, index+1);
-		this.session.outstandingEvents = this.session.events.slice(index+1);
-		if(updateCallback){
-			updateCallback();
-		}
-		handleEvents(this.session.outstandingEvents);
 	}
 
 	this.skipToTime = function(time) {
@@ -117,7 +144,7 @@ var PageMirrorPlayer = function(options) {
 
 	function handleEvents(events) {
 		$this.session.outstandingEvents = events;
-		if ($this.state == "Playing" || $this.state == "Loading") {
+		if ($this.state == "Playing") {
 			var event = events.shift();
 			if (event) {
 				$this.session.processedEvents.push(event);
@@ -140,13 +167,10 @@ var PageMirrorPlayer = function(options) {
 					console.log(event.event);
 					eventHandler.handleEvent(event.event, event.args);
 					var tmp = document.children[0].style.webkitTransform;
-					if(!tmp || tmp == ""){
+					if (!tmp || tmp == "") {
 						tmp = "scale(1)";
 					}
 					document.children[0].style.webkitTransform = tmp;
-					if ($this.state == "Loading" && event.event == "initialize") {
-						//$this.pause();
-					}
 					if (updateCallback) {
 						updateCallback();
 					}

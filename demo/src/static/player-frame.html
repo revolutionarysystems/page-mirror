@@ -25,5 +25,11 @@
 		}	
 	}
 	init();
-	player.play(window.location.hash.substring(1), {before: before, update: update, after: after});
+	var sessionId = window.location.hash.substring(1);
+	var event = null;
+	if(sessionId.indexOf(":") > -1){
+		event = eval(sessionId.substring(sessionId.indexOf(":")+1));
+		sessionId = sessionId.substring(0, sessionId.indexOf(":"))
+	}
+	player.play(sessionId, {event: event, before: before, update: update, after: after});
 </script>

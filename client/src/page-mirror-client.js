@@ -12,6 +12,7 @@ var PageMirrorClient = function(options) {
   var window = options.window || window;
   options.record = options.record || false;
   options.onInit = options.onInit || function() {};
+  options.onUpdate = options.onUpdate || function(){};
   options.account = options.account || "";
   options.ignoreAttribute = options.ignoreAttribute || "mirrorIgnore";
 
@@ -40,13 +41,19 @@ var PageMirrorClient = function(options) {
     record: options.record
   }, options.onInit);
 
+  function sendUpdate(event, args){
+    socket.emit(event, args, function(recording){
+      options.onUpdate(event, args, recording);
+    });
+  }
+
   var mirrorClient;
 
   socket.on("monitoringSession", function() {
     if (!mirrorClient) {
       mirrorClient = new TreeMirrorClient(window.document, {
         initialize: function(rootId, children) {
-          socket.emit('initialize', {
+          sendUpdate('initialize', {
             visibility: window.document.visibilityState,
             base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
             rootId: rootId,
@@ -62,7 +69,7 @@ var PageMirrorClient = function(options) {
         },
 
         applyChanged: function(removed, addedOrMoved, attributes, text) {
-          socket.emit('applyChanged', {
+          sendUpdate('applyChanged', {
             removed: removed,
             addedOrMoved: addedOrMoved,
             attributes: attributes,
@@ -79,7 +86,7 @@ var PageMirrorClient = function(options) {
 
   window.addEventListener("scroll", function(e) {
     squash("scroll", 500, function() {
-      socket.emit('scroll', {
+      sendUpdate('scroll', {
         x: window.pageXOffset,
         y: window.pageYOffset
       });
@@ -90,7 +97,7 @@ var PageMirrorClient = function(options) {
 
   window.addEventListener("resize", function(e) {
     squash("resize", 1000, function() {
-      socket.emit('resize', {
+      sendUpdate('resize', {
         width: window.document.documentElement.clientWidth,
         height: window.document.documentElement.clientHeight,
       });
@@ -98,13 +105,13 @@ var PageMirrorClient = function(options) {
   });
 
   window.addEventListener("unload", function(e) {
-    socket.emit('unload');
+    sendUpdate('unload');
   });
 
   window.addEventListener("mousemove", function(e) {
     throttle("mousemove", 200, function() {
       if (initialized) {
-        socket.emit('mousemove', {
+        sendUpdate('mousemove', {
           x: e.x,
           y: e.y
         });
@@ -113,28 +120,28 @@ var PageMirrorClient = function(options) {
   });
 
   window.addEventListener("mousedown", function(e) {
-    socket.emit('mousedown', {
+    sendUpdate('mousedown', {
       x: e.x,
       y: e.y
     });
   });
 
   window.addEventListener("mouseup", function(e) {
-    socket.emit('mouseup', {
+    sendUpdate('mouseup', {
       x: e.x,
       y: e.y
     });
   });
 
   window.document.addEventListener("visibilitychange", function() {
-    socket.emit('visibilitychange', {
+    sendUpdate('visibilitychange', {
       visibility: window.document.visibilityState
     })
   });
 
   this.virtualPage = function(url) {
     url = url || window.location.href;
-    socket.emit('virtualPage', {
+    sendUpdate('virtualPage', {
       url: url
     });
   }

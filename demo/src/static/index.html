@@ -13,6 +13,9 @@
 			}
 			var pmc = new PageMirrorClient({window: window, account: account, record:true, trackHashChange: true, onInit: function(recording){
 				console.log(recording);
+			}, onUpdate: function(event, args, recording){
+				console.log("Update " + event);
+				console.log(recording);
 			}});
 		</script>
 		<link rel="stylesheet" type="text/css" href="style.css">
