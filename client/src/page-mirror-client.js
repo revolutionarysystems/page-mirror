@@ -12,7 +12,7 @@ var PageMirrorClient = function(options) {
   var window = options.window || window;
   options.record = options.record || false;
   options.onInit = options.onInit || function() {};
-  options.onUpdate = options.onUpdate || function(){};
+  options.onUpdate = options.onUpdate || function() {};
   options.account = options.account || "";
   options.ignoreAttribute = options.ignoreAttribute || "mirrorIgnore";
 
@@ -35,16 +35,23 @@ var PageMirrorClient = function(options) {
 
   var initialized = false;
 
+  var recordingIndex = 0;
+
   socket.emit("createSession", {
     id: sessionId,
+    time: new Date().getTime(),
     account: options.account,
     record: options.record
-  }, options.onInit);
+  }, function(recording) {
+    recordingIndex = recording.events.length;
+    options.onInit(recording);
+  });
 
-  function sendUpdate(event, args){
-    socket.emit(event, args, function(recording){
-      options.onUpdate(event, args, recording);
-    });
+  function sendUpdate(event, args) {
+    recordingIndex = recordingIndex + 1;
+    args.time = new Date().getTime();
+    options.onUpdate(event, args, recordingIndex);
+    socket.emit(event, args);
   }
 
   var mirrorClient;

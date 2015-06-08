@@ -1,13 +1,9 @@
 var MongoDBRecordingStore = function(recordingDB, blacklistDB) {
 
-	this.persist = function(recording) {
+	this.persist = function(recording, callback) {
 		recording._id = recording.id;
 		recordingDB.save(recording, function(err, result) {
-			if (err) {
-				console.log("Unable to persist recording: " + err);
-			} else {
-				console.log("Recording saved to database");
-			}
+			callback(err, result);
 		});
 	}
 

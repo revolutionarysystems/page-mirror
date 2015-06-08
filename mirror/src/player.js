@@ -166,11 +166,7 @@ var PageMirrorPlayer = function(options) {
 				} else {
 					console.log(event.event);
 					eventHandler.handleEvent(event.event, event.args);
-					var tmp = document.children[0].style.webkitTransform;
-					if (!tmp || tmp == "") {
-						tmp = "scale(1)";
-					}
-					document.children[0].style.webkitTransform = tmp;
+					forceRedraw();
 					if (updateCallback) {
 						updateCallback();
 					}
@@ -182,6 +178,15 @@ var PageMirrorPlayer = function(options) {
 					afterCallback();
 				}
 			}
+		}
+	}
+
+	function forceRedraw() {
+		var sel = document.getElementById('revsys-redraw-fix');
+		if (sel) {
+			sel.style.display = 'none';
+			sel.offsetHeight; // no need to store this anywhere, the reference is enough
+			sel.style.display = 'block';
 		}
 	}
 }

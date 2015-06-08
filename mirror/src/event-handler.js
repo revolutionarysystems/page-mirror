@@ -42,6 +42,9 @@ var PageMirrorEventHandler = function(options) {
 				var mouse = document.createElement("div");
 				mouse.id = "revsys-pagemirror-mouse";
 				document.body.appendChild(mouse);
+				var redraw = document.createElement("div");
+				redraw.id = "revsys-redraw-fix";
+				document.body.appendChild(redraw);
 				var style = document.createElement('style')
 				style.type = 'text/css'
 				style.innerHTML = '#revsys-pagemirror-mouse{' +
@@ -55,7 +58,17 @@ var PageMirrorEventHandler = function(options) {
 				'}' +
 				'#revsys-pagemirror-mouse.pressed{' +
 				    'background-color:red;' +
-				'}';
+				'}' + 
+				'div#revsys-redraw-fix {' + 
+				    'position: fixed;' + 
+				    'top: 0;' + 
+				    'right: 0;' + 
+				    'bottom: 0;' + 
+				    'left: 0;' + 
+				    'z-index: 9999;' + 
+				    'pointer-events: none;' + 
+				    'display: block;' + 
+				'};';
 				document.getElementsByTagName('head')[0].appendChild(style);
 				eventListeners.visibilitychange({visibility: args.visibility});
 			} catch (e) {

@@ -18,10 +18,10 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
     var sessionId;
     var accountId;
 
-    console.log('a user connected');
+    //console.log('a user connected');
 
     socket.on('disconnect', function() {
-      console.log('user disconnected');
+      //console.log('user disconnected');
     });
 
     socket.on("createSession", function(args, callback) {
@@ -31,7 +31,7 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
       socket.join(sessionId);
       var result = null;
       if (options.autorecord == true || args.record == true) {
-        recordSession(function(recording) {
+        recordSession(args.time, function(recording) {
           socketServer.sockets.in(sessionId).emit('monitoringSession');
           if (callback) {
             callback(recording);
@@ -43,7 +43,7 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
     });
 
     socket.on("recordSession", function(callback) {
-      recordSession(function(recording) {
+      recordSession(args.time, function(recording) {
         socket.join(sessionId);
         socket.broadcast.to(sessionId).emit('monitoringSession');
         if (callback) {
@@ -123,7 +123,7 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
       })
     })
 
-    function recordSession(callback) {
+    function recordSession(clientTime, callback) {
       recordingStore.isBlacklisted(accountId, function(blacklisted) {
         if (blacklisted) {
           console.log("Account blacklisted");
@@ -136,57 +136,85 @@ var PageMirrorServer = function(socketServer, httpApp, recordingStore, options) 
                 id: sessionId,
                 account: accountId,
                 session: sessionId,
+                clientTime: clientTime,
                 startTime: new Date().getTime(),
                 lastEventTime: new Date().getTime(),
                 events: [],
                 pages: []
               }
-              recordingStore.persist(recording);
+              recordingStore.persist(recording, function(err, result) {
+                callback(recording);
+              });
+            } else {
+              callback(recording);
             }
-            callback(recording);
           });
         }
       });
     }
 
+    var recordingEvent = false;
+    var pendingEvents = []
+
     function recordEvent(event, args, callback) {
-      var now = new Date().getTime();
-      recordingStore.retrieve(sessionId, function(err, recordedSession) {
-        if (recordedSession) {
-          if (recordedSession.pages.length == 0 && event != "initialize") {
-            return;
-          }
-          if (recordedSession.pages.length > 0) {
+      if (recordingEvent) {
+        pendingEvents.push({
+          event: event,
+          args: args,
+          callback: callback
+        });
+      } else {
+        recordingEvent = true;
+        recordingStore.retrieve(sessionId, function(err, recordedSession) {
+          if (recordedSession) {
+            if (recordedSession.pages.length == 0 && event != "initialize") {
+              return;
+            }
+            now = recordedSession.startTime + (args.time - recordedSession.clientTime);
+            if (recordedSession.pages.length > 0) {
+              recordedSession.events.push({
+                event: "wait",
+                time: now,
+                args: {
+                  time: now - recordedSession.lastEventTime
+                }
+              });
+            }
+            recordedSession.lastEventTime = now;
             recordedSession.events.push({
-              event: "wait",
+              event: event,
               time: now,
-              args: {
-                time: now - recordedSession.lastEventTime
+              args: args
+            });
+            recordedSession.lastEvent = event;
+            if (recordedSession.pages.length > 0) {
+              recordedSession.pages[recordedSession.pages.length - 1].endTime = now;
+            }
+            if (event == "virtualPage" || (event == "initialize" && (recordedSession.pages.length == 0 || args.new))) {
+              recordedSession.pages.push({
+                url: args.url,
+                virtual: event == "virtualPage",
+                startTime: now,
+                index: recordedSession.events.length - 1
+              });
+            }
+            recordingStore.persist(recordedSession, function(err) {
+              if (callback) {
+                try {
+                  callback(recordedSession);
+                } catch (e) {}
+              }
+              recordingEvent = false;
+              if (pendingEvents.length > 0) {
+                var nextEvent = pendingEvents.shift();
+                recordEvent(nextEvent.event, nextEvent.args, nextEvent.callback);
               }
             });
+          } else {
+            recordingEvent = false;
           }
-          recordedSession.lastEventTime = now;
-          recordedSession.events.push({
-            event: event,
-            time: now,
-            args: args
-          });
-          recordedSession.lastEvent = event;
-          if (recordedSession.pages.length > 0) {
-            recordedSession.pages[recordedSession.pages.length - 1].endTime = now;
-          }
-          if (event == "virtualPage" || (event == "initialize" && (recordedSession.pages.length == 0 || args.new))) {
-            recordedSession.pages.push({
-              url: args.url,
-              virtual: event == "virtualPage",
-              startTime: now,
-              index: recordedSession.events.length - 1
-            });
-          }
-          recordingStore.persist(recordedSession);
-          callback(recordedSession);
-        }
-      })
+        })
+      }
     }
   });
 
