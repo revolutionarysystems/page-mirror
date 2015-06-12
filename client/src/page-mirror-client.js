@@ -119,8 +119,8 @@ var PageMirrorClient = function(options) {
     throttle("mousemove", 200, function() {
       if (initialized) {
         sendUpdate('mousemove', {
-          x: e.x,
-          y: e.y
+          x: e.clientX,
+          y: e.clientY
         });
       }
     });
@@ -128,15 +128,15 @@ var PageMirrorClient = function(options) {
 
   window.addEventListener("mousedown", function(e) {
     sendUpdate('mousedown', {
-      x: e.x,
-      y: e.y
+      x: e.clientX,
+      y: e.clientY
     });
   });
 
   window.addEventListener("mouseup", function(e) {
     sendUpdate('mouseup', {
-      x: e.x,
-      y: e.y
+      x: e.clientX,
+      y: e.clientY
     });
   });
 
