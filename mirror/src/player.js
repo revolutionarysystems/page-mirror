@@ -47,6 +47,8 @@ var PageMirrorPlayer = function(config) {
 					}
 					session.pages = pages;
 				}
+				var lastEvent = session.events[session.events.length-1];
+				session.endTime = lastEvent.time;
 				$this.session = session;
 				beforeCallback = options.before;
 				updateCallback = options.update;
@@ -145,7 +147,12 @@ var PageMirrorPlayer = function(config) {
 						handleEvents(events, false);
 					}, waitTime / $this.speed);
 					if (updateCallback) {
-						updateCallback();
+						updateCallback({
+							event: "wait",
+							args: {
+								time: waitTime
+							}
+						});
 					}
 				} else {
 					$this.session.processedEvents.push(event);
@@ -153,7 +160,7 @@ var PageMirrorPlayer = function(config) {
 					eventHandler.handleEvent(event.event, event.args);
 					forceRedraw();
 					if (updateCallback) {
-						updateCallback();
+						updateCallback(event);
 					}
 					handleEvents(events);
 				}

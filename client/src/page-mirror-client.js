@@ -30,22 +30,11 @@ var PageMirrorClient = function(updateHandler, options) {
 
   var initialized = false;
 
-  var recordingIndex = 0;
-
-  // socket.emit("createSession", {
-  //   id: sessionId,
-  //   time: new Date().getTime(),
-  //   account: options.account,
-  //   record: options.record
-  // }, function(recording) {
-  //   recordingIndex = recording.events.length;
-  //   options.onInit(recording);
-  // });
+  options.onInit();
 
   function sendUpdate(event, args) {
     var now = new Date().getTime();
-    recordingIndex = recordingIndex + 1;
-    options.onUpdate(event, args, recordingIndex);
+    options.onUpdate(event, args);
     updateHandler.send({
       account: options.account,
       session: sessionId,
