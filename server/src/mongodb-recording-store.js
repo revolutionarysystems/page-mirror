@@ -1,19 +1,30 @@
-var MongoDBRecordingStore = function(recordingDB, blacklistDB) {
+var MongoDBRecordingStore = function(db) {
 
-	this.persist = function(recording, callback) {
+	var recordingDB = db.collection("recordings");
+	var blacklistDB = db.collection("blacklist");
+	var eventDB = db.collection("events");
+
+	this.persistRecording = function(recording, callback) {
 		recording._id = recording.id;
 		recordingDB.save(recording, function(err, result) {
 			callback(err, result);
 		});
 	}
 
-	this.retrieve = function(id, callback) {
+	this.persistEvent = function(event, callback) {
+		event._id = event.id;
+		eventDB.save(event, function(err, result) {
+			callback(err, result);
+		})
+	}
+
+	this.retrieveRecording = function(id, callback) {
 		recordingDB.findOne({
 			_id: id
 		}, callback);
 	}
 
-	this.find = function(query, callback) {
+	this.findRecordings = function(query, callback) {
 		recordingDB.find(query, function(err, cursor) {
 			cursor.toArray(function(err, result) {
 				callback(err, result);
@@ -21,9 +32,20 @@ var MongoDBRecordingStore = function(recordingDB, blacklistDB) {
 		});
 	}
 
-	this.count = function(query, callback) {
+	this.countRecordings = function(query, callback) {
 		recordingDB.find(query, function(err, cursor) {
 			cursor.count(false, callback);
+		});
+	}
+
+	this.retrieveEvents = function(session, callback) {
+		eventDB.find({
+			session: session
+		}, function(err, cursor) {
+			cursor.sort({time: 1});
+			cursor.toArray(function(err, result) {
+				callback(err, result);
+			});
 		});
 	}
 
@@ -52,10 +74,10 @@ var MongoDBRecordingStore = function(recordingDB, blacklistDB) {
 	}
 
 	this.clearBlacklist = function() {
-		blacklistDB.remove({}, function(err){
-			if(err){
+		blacklistDB.remove({}, function(err) {
+			if (err) {
 				console.log("Unabled to clear blacklist: " + err);
-			}else{
+			} else {
 				console.log("Blacklist cleared");
 			}
 		});

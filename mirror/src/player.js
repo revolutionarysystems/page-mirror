@@ -1,17 +1,10 @@
 include "event-handler.js"
 
-var PageMirrorPlayer = function(options) {
+var PageMirrorPlayer = function(config) {
 
 	var $this = this;
 
-	options = options || {};
-
-	var socket;
-	if (options.url) {
-		socket = io.connect(options.url);
-	} else {
-		socket = io.connect();
-	}
+	config = config || {};
 
 	var eventHandler = new PageMirrorEventHandler();
 
@@ -25,14 +18,9 @@ var PageMirrorPlayer = function(options) {
 
 	this.play = function(id, options) {
 		options = options || {};
-		socket.emit("getRecordedSession", {
-			id: id
-		}, function(err, session) {
-			if (err) {
-				if (options.error) {
-					error(err);
-				}
-			} else {
+		Ajax.getJSON(config.url + "/getRecording?id=" + id, {
+			onError: options.error,
+			onSuccess: function(session) {
 				eventHandler.reset();
 				session.processedEvents = [];
 				session.preExistingEvents = options.event ? session.events.slice(0, options.event) : [];
@@ -91,8 +79,7 @@ var PageMirrorPlayer = function(options) {
 
 	this.skipToPage = function(index) {
 		var page = this.session.pages[index];
-		var eventIndex = page.index;
-		this.skipToEvent(eventIndex);
+		this.skipToTimestamp(new Date(page.startTime));
 	}
 
 	this.skipToEvent = function(index) {
@@ -118,9 +105,7 @@ var PageMirrorPlayer = function(options) {
 	function skipEvents(events) {
 		for (var i = 0; i < events.length; i++) {
 			var event = events[i];
-			if (event.event != "wait") {
-				eventHandler.handleEvent(event.event, event.args);
-			}
+			eventHandler.handleEvent(event.event, event.args);
 		}
 	}
 
@@ -142,28 +127,28 @@ var PageMirrorPlayer = function(options) {
 
 	var nextEventTimeout;
 
-	function handleEvents(events) {
+	function handleEvents(events, waitNext) {
+		var wait = true;
+		if (waitNext != undefined) {
+			wait = waitNext;
+		}
 		$this.session.outstandingEvents = events;
 		if ($this.state == "Playing") {
 			var event = events.shift();
 			if (event) {
-				$this.session.processedEvents.push(event);
-				if (event.event == "wait") {
-					if ($this.speed > 0) {
-						console.log("Waiting " + event.args.time / $this.speed + "ms");
-						nextEventTimeout = setTimeout(function() {
-							handleEvents(events);
-						}, event.args.time / $this.speed);
-						if (updateCallback) {
-							updateCallback();
-						}
-					} else {
-						if (updateCallback) {
-							updateCallback();
-						}
-						handleEvents(events);
+				if (wait && $this.session.processedEvents.length > 0) {
+					var lastEvent = $this.session.processedEvents[$this.session.processedEvents.length - 1];
+					var waitTime = event.time - lastEvent.time;
+					console.log("Waiting " + waitTime / $this.speed + "ms");
+					events.unshift(event);
+					nextEventTimeout = setTimeout(function() {
+						handleEvents(events, false);
+					}, waitTime / $this.speed);
+					if (updateCallback) {
+						updateCallback();
 					}
 				} else {
+					$this.session.processedEvents.push(event);
 					console.log(event.event);
 					eventHandler.handleEvent(event.event, event.args);
 					forceRedraw();

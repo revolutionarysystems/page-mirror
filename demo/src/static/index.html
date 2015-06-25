@@ -4,20 +4,11 @@
 		<title>Page Mirror Test</title>
 		<script src="mutation-summary.js"></script>
 		<script src="tree-mirror.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
+		<script src="ajax.js"></script>
+		<script src="hmac-sha256.js"></script>
+		<script src="sha256-min.js"></script>
+		<script src="kinesis.js"></script>
 		<script src="page-mirror-client.js"></script>
-		<script>
-			var account = window.location.hash.substring(1);
-			if(account == ""){
-				account = "abc123";
-			}
-			var pmc = new PageMirrorClient({window: window, account: account, record:true, trackHashChange: true, onInit: function(recording){
-				console.log(recording);
-			}, onUpdate: function(event, args, recording){
-				console.log("Update " + event);
-				console.log(recording);
-			}});
-		</script>
 		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 	<body>
@@ -144,6 +135,20 @@
 			function changeHash(){
 				window.location = '#'+Math.floor(Math.random()*16777215).toString(16);
 			}
+			var account = window.location.hash.substring(1);
+			if(account == ""){
+				account = "abc123";
+			}
+			var pmc = new PageMirrorClient(new PageMirrorClient.DebugUpdateHandler(new PageMirrorClient.KinesisUpdateHandler(new Kinesis({
+					partitionKey: "reflect",
+					streamName: "recordings",
+					credentials: aws
+				}))), {window: window, account: account, record:true, trackHashChange: true, onInit: function(recording){
+				console.log(recording);
+			}, onUpdate: function(event, args, recording){
+				console.log("Update " + event);
+				console.log(recording);
+			}});
 		</script>
 	</body>
 </html>

@@ -1,13 +1,8 @@
-var PageMirrorClient = function(options) {
+var PageMirrorClient = function(updateHandler, options) {
 
   var $this = this;
 
-  var socket;
-  if (options.url) {
-    socket = io.connect(options.url);
-  } else {
-    socket = io.connect();
-  }
+  options = options || {};
 
   var window = options.window || window;
   options.record = options.record || false;
@@ -37,55 +32,53 @@ var PageMirrorClient = function(options) {
 
   var recordingIndex = 0;
 
-  socket.emit("createSession", {
-    id: sessionId,
-    time: new Date().getTime(),
-    account: options.account,
-    record: options.record
-  }, function(recording) {
-    recordingIndex = recording.events.length;
-    options.onInit(recording);
-  });
+  // socket.emit("createSession", {
+  //   id: sessionId,
+  //   time: new Date().getTime(),
+  //   account: options.account,
+  //   record: options.record
+  // }, function(recording) {
+  //   recordingIndex = recording.events.length;
+  //   options.onInit(recording);
+  // });
 
   function sendUpdate(event, args) {
+    var now = new Date().getTime();
     recordingIndex = recordingIndex + 1;
-    args.time = new Date().getTime();
     options.onUpdate(event, args, recordingIndex);
-    socket.emit(event, args);
+    updateHandler.send({
+      account: options.account,
+      session: sessionId,
+      time: now,
+      event: event,
+      args: args
+    });
   }
 
-  var mirrorClient;
-
-  socket.on("monitoringSession", function() {
-    if (!mirrorClient) {
-      mirrorClient = new TreeMirrorClient(window.document, {
-        initialize: function(rootId, children) {
-          sendUpdate('initialize', {
-            visibility: window.document.visibilityState,
-            base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
-            rootId: rootId,
-            children: children,
-            viewportWidth: window.document.documentElement.clientWidth,
-            viewportHeight: window.document.documentElement.clientHeight,
-            pageXOffset: window.pageXOffset,
-            pageYOffset: window.pageYOffset,
-            url: window.location.href,
-            new: !initialized
-          });
-          initialized = true;
-        },
-
-        applyChanged: function(removed, addedOrMoved, attributes, text) {
-          sendUpdate('applyChanged', {
-            removed: removed,
-            addedOrMoved: addedOrMoved,
-            attributes: attributes,
-            text: text
-          });
-        }
+  var mirrorClient = new TreeMirrorClient(window.document, {
+    initialize: function(rootId, children) {
+      sendUpdate('initialize', {
+        visibility: window.document.visibilityState,
+        base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
+        rootId: rootId,
+        children: children,
+        viewportWidth: window.document.documentElement.clientWidth,
+        viewportHeight: window.document.documentElement.clientHeight,
+        pageXOffset: window.pageXOffset,
+        pageYOffset: window.pageYOffset,
+        url: window.location.href,
+        new: !initialized
       });
-    } else {
-      mirrorClient.reinitialize();
+      initialized = true;
+    },
+
+    applyChanged: function(removed, addedOrMoved, attributes, text) {
+      sendUpdate('applyChanged', {
+        removed: removed,
+        addedOrMoved: addedOrMoved,
+        attributes: attributes,
+        text: text
+      });
     }
   });
 
@@ -238,4 +231,21 @@ var PageMirrorClient = function(options) {
       }
     });
   });
+
 }
+
+PageMirrorClient.KinesisUpdateHandler = function(kinesisClient) {
+  this.send = function(update) {
+    kinesisClient.put(JSON.stringify(update), {
+      onSuccess: function() {},
+      onError: function() {}
+    });
+  }
+};
+
+PageMirrorClient.DebugUpdateHandler = function(updateHandler) {
+  this.send = function(update) {
+    console.log(update);
+    updateHandler.send(update);
+  }
+};

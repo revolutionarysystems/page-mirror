@@ -10,6 +10,10 @@
 	],	
     "dependencies": [
     	{
+			"name": "utils-ajax",
+			"version": "0.1.1"
+		},
+    	{
 			"name": "socket.io-client",
 			"version": "0.9.16",
 			"includes": [

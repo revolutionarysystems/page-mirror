@@ -10,10 +10,9 @@
 	],
     "dependencies": [
         {
-            "name": "socket.io-client",
-            "version": "0.9.16"
-        },
-        {
+            "name": "kinesis-js",
+            "version": "0.2.0"
+        },{
             "name": "mutation-summary",
             "version": "0.2.0"
         },{

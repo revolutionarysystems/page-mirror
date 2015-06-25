@@ -5,11 +5,12 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "*",
+    "async": "^1.2.1",
     "body-parser": "^1.12.4",
+    "express": "*",
+    "kinesis-client-library": "^0.2.7",
     "mongodb": "~1.4.31",
-    "node-uuid": "~1.4.2",
-    "socket.io": "0.9.16"
+    "node-uuid": "^1.4.3"
   },
   "engines": {
     "node": ">=0.8"

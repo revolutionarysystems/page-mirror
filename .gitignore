@@ -16,3 +16,4 @@
 /client/haven_cache
 /mirror/haven_cache
 /mirror/dist
+/demo/src/static/aws.js

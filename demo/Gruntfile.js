@@ -23,6 +23,21 @@ module.exports = function(grunt) {
           dest: 'build/static/'
         },{
           expand: true,
+          cwd: '../client/haven_artifacts/main/kinesis-js',
+          src: ['**/*'],
+          dest: 'build/static/'
+        },{
+          expand: true,
+          cwd: '../client/haven_artifacts/main/cryptojs',
+          src: ['**/*'],
+          dest: 'build/static/'
+        },{
+          expand: true,
+          cwd: '../client/haven_artifacts/main/utils-ajax',
+          src: ['**/*'],
+          dest: 'build/static/'
+        },{
+          expand: true,
           cwd: 'src/static',
           src: ['**/*'],
           dest: 'build/static/'
@@ -36,11 +51,6 @@ module.exports = function(grunt) {
           cwd: '../mirror/dist',
           src: ['**/*'],
           dest: 'build/static/'
-        },{
-          expand: true,
-          cwd: '../server/src',
-          src: ['**/*'],
-          dest: 'build/'
         },{
           expand: true,
           cwd: 'src/server',

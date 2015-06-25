@@ -10,7 +10,6 @@
     "express": "*",
     "mongodb": "~1.4.31",
     "node-uuid": "~1.4.2",
-    "socket.io": "0.9.16"
   },
   "engines": {
     "node": ">=0.8"

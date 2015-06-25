@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         },{
           expand: true,
           cwd: "node_modules",
-          src: ['mongodb/**/*', 'body-parser/**/*', 'node-uuid/**/*', 'express/**/*', 'socket.io/**/*'],
+          src: ['mongodb/**/*', 'body-parser/**/*', 'express/**/*', 'kinesis-client-library/**/*', 'async/**/*', 'node-uuid/**/*'],
           dest: 'node_modules/'
         }]
       }
