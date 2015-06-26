@@ -120,8 +120,8 @@ httpApp.get("/countRecordings", function(req, res) {
 // Process Updates
 
 function handleUpdate(update, done) {
-  console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
-  console.log(update.args);
+  //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+  //console.log(update.args);
   recordUpdate(update, done);
 }
 
