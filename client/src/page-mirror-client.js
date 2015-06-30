@@ -63,6 +63,7 @@ var PageMirrorClient = function(updateHandler, options) {
 
     applyChanged: function(removed, addedOrMoved, attributes, text) {
       sendUpdate('applyChanged', {
+        base: window.location.href.match(/^(.*\/)[^\/]*$/)[1],
         removed: removed,
         addedOrMoved: addedOrMoved,
         attributes: attributes,

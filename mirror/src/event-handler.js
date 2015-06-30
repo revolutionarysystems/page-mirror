@@ -4,7 +4,7 @@ var PageMirrorEventHandler = function(options) {
 
 	var $this = this;
 
-	var base;
+	var base = options.base;
 	var mirror = new TreeMirror(document, {
 		createElement: function(tagName) {
 			if (tagName == 'SCRIPT') {
@@ -33,7 +33,7 @@ var PageMirrorEventHandler = function(options) {
 			}
 			try {
 				initialized = true;
-				base = args.base;
+				base = base || args.base;
 				mirror.initialize(args.rootId, args.children);
 				window.scrollTo(args.pageXOffset, args.pageYOffset);
 				if (window.parent && window.parent.resize) {

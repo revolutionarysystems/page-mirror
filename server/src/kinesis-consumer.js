@@ -1,3 +1,4 @@
+var AWS = require('aws-sdk');
 var kcl = require('kinesis-client-library');
 var async = require('async');
 var MongoDBRecordingStore = require("./mongodb-recording-store.js");
@@ -8,6 +9,10 @@ var http = require("http"); // http server core module
 var https = require("https"); // https server core module
 var express = require("express"); // web framework external module
 var bodyParser = require('body-parser');
+var request = require('request');
+var s3 = new AWS.S3();
+var md5 = require('MD5');
+var s3Stream = require('s3-upload-stream')(s3);
 
 // Kinesis Consumer 
 
@@ -120,9 +125,161 @@ httpApp.get("/countRecordings", function(req, res) {
 // Process Updates
 
 function handleUpdate(update, done) {
-  //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
-  //console.log(update.args);
-  recordUpdate(update, done);
+  console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+  if (update.event == "initialize") {
+    handleAssets(update.account, update.args.base, update.args.children, function() {
+      recordUpdate(update, done);
+    });
+  }else if(update.event == "applyChanged"){
+    handleAssets(update.account, update.args.base, update.args.addedOrMoved, function() {
+      recordUpdate(update, done);
+    });
+  } else {
+    recordUpdate(update, done);
+  }
+}
+
+function handleAssets(account, baseUri, nodes, done) {
+  if (nodes) {
+    async.eachSeries(nodes, function(node, done) {
+      if (node.tagName == "LINK") {
+        cacheAsset(account, baseUri, node.attributes.href, function(err, key) {
+          if (!err && key) {
+            node.attributes.href = key;
+          }
+          done(err);
+        });
+      } else if (node.tagName == "IMG") {
+        cacheAsset(account, baseUri, node.attributes.src, function(err, key) {
+          if (!err && key) {
+            node.attributes.src = key;
+          }
+          done(err);
+        });
+      } else {
+        handleAssets(account, baseUri, node.childNodes, done);
+      }
+    }, function(err) {
+      done(err);
+    });
+  } else {
+    done();
+  }
+}
+
+
+function cacheAsset(account, baseUri, href, done) {
+  if (href) {
+    if (href.indexOf("http") == 0) {
+      // leave as is
+    } else if (href.indexOf("//") == 0) {
+      href = "http:" + href;
+    } else {
+      href = baseUri + href;
+    }
+    request.head(href, function(error, response) {
+      if (error) {
+        done(error);
+      } else if (response.statusCode != 200) {
+        done(response.statusCode);
+      } else {
+        var lastModified = response.headers['last-modified'];
+        var contentType = response.headers['content-type'];
+        var key = account + "/" + md5(href + lastModified);
+        s3.headObject({
+          Bucket: "echo-reflect-dev-assets",
+          Key: key
+        }, function(err, data) {
+          if (data) {
+            done(null, key);
+          } else {
+            if (err && err.code != "NotFound") {
+              done(err);
+            } else {
+              var upload = s3Stream.upload({
+                Bucket: "echo-reflect-dev-assets",
+                Key: key,
+                ACL: "public-read",
+                ContentType: contentType,
+                Metadata: {
+                  lastModified: lastModified || "unknown",
+                  source: href
+                }
+              }).on('error', function(err) {
+                done(err);
+              }).on('uploaded', function(details) {
+                done(null, key);
+              });
+              if (contentType.indexOf("text/css") == 0) {
+                request(href, function(err, response, body) {
+                  if (err) {
+                    done(err);
+                  } else if (response.statusCode != 200) {
+                    done(response.statusCode);
+                  } else {
+                    var assetRegex = /([\s\S]*?)(url\(([^)]+)\))(?!\s*[;,]?\s*\/\*\s*\*\/)|([\s\S]+)/img;
+                    var group;
+                    var result;
+                    async.whilst(function() {
+                      group = assetRegex.exec(body);
+                      return group != null;
+                    }, function(done) {
+                      if (group[4] == null) {
+                        result = result + group[1];
+                        var assetHref = group[3].replace(/['"]/g, "");
+                        if (assetHref.indexOf("http") == 0) {
+                          // Leave as is
+                        } else if (assetHref.indexOf("//") == 0) {
+                          assetHref = "http:" + assetHref;
+                        } else {
+                          assetHref = href.substring(0, href.lastIndexOf("/") + 1) + assetHref;
+                        }
+                        cacheAsset(account, null, assetHref, function(err, key) {
+                          if (!err && key) {
+                            result = result + 'url("../' + key + '")';
+                          } else {
+                            result = group[2];
+                          }
+                          done(err);
+                        });
+                      } else {
+                        result = result + group[4];
+                        done();
+                      }
+                    }, function(err) {
+                      if (err) {
+                        done(err);
+                      } else {
+                        s3.putObject({
+                          Bucket: "echo-reflect-dev-assets",
+                          Key: key,
+                          Body: result,
+                          ACL: "public-read",
+                          ContentType: contentType,
+                          Metadata: {
+                            lastModified: lastModified || "unknown",
+                            source: href
+                          }
+                        }, function(err, data) {
+                          done(err, key);
+                        });
+                      }
+                    });
+                  }
+                })
+              } else {
+                request.get(href).on('error', function(err) {
+                  done(err);
+                }).pipe(upload);
+              }
+            }
+          }
+        });
+      }
+    });
+  } else {
+    done();
+  }
 }
 
 function recordUpdate(update, done) {

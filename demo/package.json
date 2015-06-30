@@ -9,7 +9,7 @@
     "body-parser": "^1.12.4",
     "express": "*",
     "mongodb": "~1.4.31",
-    "node-uuid": "~1.4.2",
+    "node-uuid": "~1.4.2"
   },
   "engines": {
     "node": ">=0.8"

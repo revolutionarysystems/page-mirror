@@ -6,7 +6,7 @@ var PageMirrorPlayer = function(config) {
 
 	config = config || {};
 
-	var eventHandler = new PageMirrorEventHandler();
+	var eventHandler = new PageMirrorEventHandler({base: config.base});
 
 	this.session;
 	this.state = "Stopped";
