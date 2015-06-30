@@ -187,7 +187,7 @@ function cacheAsset(account, baseUri, href, done) {
         var contentType = response.headers['content-type'];
         var key = account + "/" + md5(href + lastModified);
         s3.headObject({
-          Bucket: "echo-reflect-dev-assets",
+          Bucket: config.asset_bucket,
           Key: key
         }, function(err, data) {
           if (data) {
@@ -197,7 +197,7 @@ function cacheAsset(account, baseUri, href, done) {
               done(err);
             } else {
               var upload = s3Stream.upload({
-                Bucket: "echo-reflect-dev-assets",
+                Bucket: config.asset_bucket,
                 Key: key,
                 ACL: "public-read",
                 ContentType: contentType,
@@ -251,7 +251,7 @@ function cacheAsset(account, baseUri, href, done) {
                         done(err);
                       } else {
                         s3.putObject({
-                          Bucket: "echo-reflect-dev-assets",
+                          Bucket: config.asset_bucket,
                           Key: key,
                           Body: result,
                           ACL: "public-read",
