@@ -125,7 +125,7 @@ httpApp.get("/countRecordings", function(req, res) {
 // Process Updates
 
 function handleUpdate(update, done) {
-  console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+  //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
   if (update.event == "initialize") {
     handleAssets(update.account, update.args.base, update.args.children, function() {
       recordUpdate(update, done);
@@ -143,7 +143,7 @@ function handleAssets(account, baseUri, nodes, done) {
   if (nodes) {
     async.eachSeries(nodes, function(node, done) {
       if (node.tagName == "LINK" && node.attributes) {
-        cacheAsset(account, baseUri, node.attributes.href, function(err, key) {
+        cacheAsset(account, baseUri, node.attributes.href, true, function(err, key) {
           if (!err && key) {
             node.attributes.href = key;
           } else {
@@ -153,7 +153,7 @@ function handleAssets(account, baseUri, nodes, done) {
           done();
         });
       } else if (node.tagName == "IMG" && node.attributes) {
-        cacheAsset(account, baseUri, node.attributes.src, function(err, key) {
+        cacheAsset(account, baseUri, node.attributes.src, true, function(err, key) {
           if (!err && key) {
             node.attributes.src = key;
           } else {
@@ -175,17 +175,18 @@ function handleAssets(account, baseUri, nodes, done) {
       } else if (node.tagName == "STYLE" && !node.childNodes) {
         var nodeId = node.id;
         var style;
+        var styleNode;
         for (var i = 0; i < nodes.length; i++) {
-          var siblingNode = nodes[i];
-          if (siblingNode.parentNode.id == nodeId) {
-            style = siblingNode.textContent;
+          styleNode = nodes[i];
+          if (styleNode.parentNode.id == nodeId) {
+            style = styleNode.textContent;
             break;
           }
         }
         if (style) {
-          parseCSS(account, baseUri, '', node.childNodes[0].textContent, function(err, result) {
+          parseCSS(account, baseUri, '', style, function(err, result) {
             if (result) {
-              node.childNodes[0].textContent = result;
+              styleNode.textContent = result;
             } else {
               console.log("ERROR: Unable to parse inline style");
               console.log(err);
@@ -243,7 +244,7 @@ function parseCSS(account, baseUri, relativeUri, body, done) {
         } else {
           assetHref = baseUri + assetHref;
         }
-        cacheAsset(account, null, assetHref, function(err, key) {
+        cacheAsset(account, null, assetHref, false, function(err, key) {
           if (!err && key) {
             result = result + 'url("' + relativeUri + key + '")';
           } else {
@@ -265,9 +266,9 @@ function parseCSS(account, baseUri, relativeUri, body, done) {
   });
 }
 
-function cacheAsset(account, baseUri, href, done) {
+function cacheAsset(account, baseUri, href, recurse, done) {
   if (href && href.indexOf("data:") != 0) {
-    console.log("Cache asset: " + href);
+    //console.log("Cache asset: " + href);
     if (href.indexOf("http") == 0) {
       // leave as is
     } else if (href.indexOf("//") == 0) {
@@ -308,7 +309,7 @@ function cacheAsset(account, baseUri, href, done) {
               }).on('uploaded', function(details) {
                 done(null, key);
               });
-              if (contentType.indexOf("text/css") == 0) {
+              if (recurse && contentType.indexOf("text/css") == 0) {
                 request(href, function(err, response, body) {
                   if (err) {
                     done(err);
