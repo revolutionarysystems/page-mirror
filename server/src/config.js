@@ -5,7 +5,11 @@ module.exports = {
 		cert: "",
 		ca: ""
 	},
-	asset_bucket: "echo-reflect-dev-assets",
+	assets:{
+		bucket: "echo-reflect-dev-assets",
+		check_interval: 60000,
+		broken_check_interval: 120000
+	},
 	port: 8070,
 	db: {
 		host:"localhost",

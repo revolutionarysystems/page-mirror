@@ -3,6 +3,7 @@ var MongoDBRecordingStore = function(db) {
 	var recordingDB = db.collection("recordings");
 	var blacklistDB = db.collection("blacklist");
 	var eventDB = db.collection("events");
+	var assetDB = db.collection("assets");
 
 	this.persistRecording = function(recording, callback) {
 		recording._id = recording.id;
@@ -81,6 +82,23 @@ var MongoDBRecordingStore = function(db) {
 				console.log("Blacklist cleared");
 			}
 		});
+	}
+
+	this.saveAssetEntry = function(asset, callback){
+		asset._id = asset.id;
+		assetDB.save(asset, callback);
+	}
+
+	this.retrieveAssetEntry = function(id, callback){
+		assetDB.findOne({
+			_id: id
+		}, function(err, doc){
+			if(doc){
+				callback(doc);
+			}else{
+				callback();
+			}
+		})
 	}
 }
 

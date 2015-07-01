@@ -146,7 +146,7 @@ function handleAssets(account, baseUri, nodes, done) {
         cacheAsset(account, baseUri, node.attributes.href, true, function(err, key) {
           if (!err && key) {
             node.attributes.href = key;
-          } else if(err) {
+          } else if (err) {
             console.log("ERROR: Unable to cache " + node.attributes.href);
             console.log(err);
           }
@@ -156,7 +156,7 @@ function handleAssets(account, baseUri, nodes, done) {
         cacheAsset(account, baseUri, node.attributes.src, true, function(err, key) {
           if (!err && key) {
             node.attributes.src = key;
-          } else if(err) {
+          } else if (err) {
             console.log("ERROR: Unable to cache " + node.attributes.src);
             console.log(err);
           }
@@ -166,7 +166,7 @@ function handleAssets(account, baseUri, nodes, done) {
         parseCSS(account, baseUri, '', node.childNodes[0].textContent, function(err, result) {
           if (result) {
             node.childNodes[0].textContent = result;
-          } else if(err){
+          } else if (err) {
             console.log("ERROR: Unable to parse inline style");
             console.log(err);
           }
@@ -187,7 +187,7 @@ function handleAssets(account, baseUri, nodes, done) {
           parseCSS(account, baseUri, '', style, function(err, result) {
             if (result) {
               styleNode.textContent = result;
-            } else if(err){
+            } else if (err) {
               console.log("ERROR: Unable to parse inline style");
               console.log(err);
             }
@@ -268,7 +268,6 @@ function parseCSS(account, baseUri, relativeUri, body, done) {
 
 function cacheAsset(account, baseUri, href, recurse, done) {
   if (href && href.indexOf("data:") != 0) {
-    //console.log("Cache asset: " + href);
     if (href.indexOf("http") == 0) {
       // leave as is
     } else if (href.indexOf("//") == 0) {
@@ -276,75 +275,100 @@ function cacheAsset(account, baseUri, href, recurse, done) {
     } else {
       href = baseUri + href;
     }
-    request.head(href, function(error, response) {
-      if (error) {
-        done(error);
-      } else if (response.statusCode != 200) {
-        done(response.statusCode);
-      } else {
-        var lastModified = response.headers['last-modified'];
-        var contentType = response.headers['content-type'];
-        var key = account + "/" + md5(href + lastModified);
-        s3.headObject({
-          Bucket: config.asset_bucket,
-          Key: key
-        }, function(err, data) {
-          if (data) {
-            done(null, key);
-          } else {
-            if (err && err.code != "NotFound") {
-              done(err);
-            } else {
-              var upload = s3Stream.upload({
-                Bucket: config.asset_bucket,
-                Key: key,
-                ACL: "public-read",
-                ContentType: contentType,
-                Metadata: {
-                  lastModified: lastModified || "unknown",
-                  source: href
-                }
-              }).on('error', function(err) {
-                done(err);
-              }).on('uploaded', function(details) {
-                done(null, key);
-              });
-              if (recurse && contentType.indexOf("text/css") == 0) {
-                request(href, function(err, response, body) {
-                  if (err) {
-                    done(err);
-                  } else if (response.statusCode != 200) {
-                    done(response.statusCode);
-                  } else {
-                    parseCSS(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        s3.putObject({
-                          Bucket: config.asset_bucket,
-                          Key: key,
-                          Body: result,
-                          ACL: "public-read",
-                          ContentType: contentType,
-                          Metadata: {
-                            lastModified: lastModified || "unknown",
-                            source: href
-                          }
-                        }, function(err, data) {
-                          done(err, key);
-                        });
-                      }
-                    });
-                  }
-                })
-              } else {
-                request.get(href).on('error', function(err) {
-                  done(err);
-                }).pipe(upload);
-              }
-            }
+    recordingStore.retrieveAssetEntry(href, function(asset) {
+      if (!asset || (asset.broken && asset.time < new Date().getTime() - config.assets.broken_check_interval) || (!asset.broken && asset.time < new Date().getTime() - config.assets.check_interval)) {
+        //console.log("Cache asset: " + href);
+        recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: false}, function(err) {
+          if (err) {
+            console.log("ERROR: Unable to log asset");
+            console.log(err);
           }
+          request.head(href, function(error, response) {
+            if (error) {
+              recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: true, error: error}, function(err){
+                if(err){
+                  console.log("ERROR: Unable to log broken asset");
+                  console.log(err);
+                }
+                done(error);
+              });
+            } else if (response.statusCode != 200) {
+              recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: true, error: response.statusCode}, function(err){
+                if(err){
+                  console.log("ERROR: Unable to log broken asset");
+                  console.log(err);
+                }
+                done(response.statusCode);
+              });
+            } else {
+              var lastModified = response.headers['last-modified'];
+              var contentType = response.headers['content-type'];
+              var key = account + "/" + md5(href + lastModified);
+              s3.headObject({
+                Bucket: config.assets.bucket,
+                Key: key
+              }, function(err, data) {
+                if (data) {
+                  done(null, key);
+                } else {
+                  if (err && err.code != "NotFound") {
+                    done(err);
+                  } else {
+                    if (recurse && contentType.indexOf("text/css") == 0) {
+                      request(href, function(err, response, body) {
+                        if (err) {
+                          done(err);
+                        } else if (response.statusCode != 200) {
+                          done(response.statusCode);
+                        } else {
+                          parseCSS(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
+                            if (err) {
+                              done(err);
+                            } else {
+                              s3.putObject({
+                                Bucket: config.assets.bucket,
+                                Key: key,
+                                Body: result,
+                                ACL: "public-read",
+                                ContentType: contentType,
+                                Metadata: {
+                                  lastModified: lastModified || "unknown",
+                                  source: href
+                                }
+                              }, function(err, data) {
+                                done(err, key);
+                              });
+                            }
+                          });
+                        }
+                      })
+                    } else {
+                      var upload = s3Stream.upload({
+                        Bucket: config.assets.bucket,
+                        Key: key,
+                        ACL: "public-read",
+                        ContentType: contentType,
+                        Metadata: {
+                          lastModified: lastModified || "unknown",
+                          source: href
+                        }
+                      }).on('error', function(err) {
+                        done(err);
+                      }).on('uploaded', function(details) {
+                        done();
+                      });
+                      request.get(href).on('error', function(err) {
+                        done(err);
+                      }).pipe(upload);
+                    }
+                  }
+                }
+              });
+            }
+          });
         });
+      } else {
+        done();
       }
     });
   } else {
