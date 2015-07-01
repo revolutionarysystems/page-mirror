@@ -146,7 +146,7 @@ function handleAssets(account, baseUri, nodes, done) {
         cacheAsset(account, baseUri, node.attributes.href, true, function(err, key) {
           if (!err && key) {
             node.attributes.href = key;
-          } else {
+          } else if(err) {
             console.log("ERROR: Unable to cache " + node.attributes.href);
             console.log(err);
           }
@@ -156,7 +156,7 @@ function handleAssets(account, baseUri, nodes, done) {
         cacheAsset(account, baseUri, node.attributes.src, true, function(err, key) {
           if (!err && key) {
             node.attributes.src = key;
-          } else {
+          } else if(err) {
             console.log("ERROR: Unable to cache " + node.attributes.src);
             console.log(err);
           }
@@ -166,7 +166,7 @@ function handleAssets(account, baseUri, nodes, done) {
         parseCSS(account, baseUri, '', node.childNodes[0].textContent, function(err, result) {
           if (result) {
             node.childNodes[0].textContent = result;
-          } else {
+          } else if(err){
             console.log("ERROR: Unable to parse inline style");
             console.log(err);
           }
@@ -187,7 +187,7 @@ function handleAssets(account, baseUri, nodes, done) {
           parseCSS(account, baseUri, '', style, function(err, result) {
             if (result) {
               styleNode.textContent = result;
-            } else {
+            } else if(err){
               console.log("ERROR: Unable to parse inline style");
               console.log(err);
             }
