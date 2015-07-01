@@ -21,6 +21,18 @@
 		<div id="img1"></div>
 		<div id="img2"></div>
 		<div id="img3"></div>
+		<div id="img4"></div>
+		<br/>
+		<div id="img5"></div>
+		<style>
+			#img4{
+				width:200px;
+				height:200px;
+				background-image: url(200.png);
+			}
+		</style>
+		<div id="insert-style"> </div>
+		<div style="width:200px; height:200px; background-image:url(200.png)"></div>
 		<table cellspacing="0">
 			<tr>
 				<th>Lorem ipsum dolot sit amet</th>
@@ -43,6 +55,7 @@
 		<button onclick="test2()">Test 2</button>
 		<button onclick="test3()">Test 3</button>
 		<button onclick="test4()">Test 4</button>
+		<button onclick="test5()">Test 5</button>
 		<button onclick="virtualPage()">Virtual Page</button>
 		<button onclick="changeHash()">Change Hash</button>
 		<a href="page2.html">Page 2</a>
@@ -141,6 +154,10 @@
 			function test4(){
 				var el = document.getElementById("img3");
 				el.innerHTML = el.innerHTML + "<img src=\"https://placehold.it/150x150\"/>";
+			}
+			function test5(){
+				var el = document.getElementById("insert-style");
+				el.innerHTML = el.innerHTML + "<style>#img5{height:300px; background-image:url(\"https://placehold.it/300x300\")}</style>"
 			}
 			function virtualPage(){
 				pmc.virtualPage();

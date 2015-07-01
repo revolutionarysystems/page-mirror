@@ -130,7 +130,7 @@ function handleUpdate(update, done) {
     handleAssets(update.account, update.args.base, update.args.children, function() {
       recordUpdate(update, done);
     });
-  }else if(update.event == "applyChanged"){
+  } else if (update.event == "applyChanged") {
     handleAssets(update.account, update.args.base, update.args.addedOrMoved, function() {
       recordUpdate(update, done);
     });
@@ -142,24 +142,78 @@ function handleUpdate(update, done) {
 function handleAssets(account, baseUri, nodes, done) {
   if (nodes) {
     async.eachSeries(nodes, function(node, done) {
-      if (node.tagName == "LINK") {
+      if (node.tagName == "LINK" && node.attributes) {
         cacheAsset(account, baseUri, node.attributes.href, function(err, key) {
           if (!err && key) {
             node.attributes.href = key;
+          } else {
+            console.log("ERROR: Unable to cache " + node.attributes.href);
+            console.log(err);
           }
-          done(err);
+          done();
         });
-      } else if (node.tagName == "IMG") {
+      } else if (node.tagName == "IMG" && node.attributes) {
         cacheAsset(account, baseUri, node.attributes.src, function(err, key) {
           if (!err && key) {
             node.attributes.src = key;
+          } else {
+            console.log("ERROR: Unable to cache " + node.attributes.src);
+            console.log(err);
           }
-          done(err);
+          done();
+        });
+      } else if (node.tagName == "STYLE" && node.childNodes) {
+        parseCSS(account, baseUri, '', node.childNodes[0].textContent, function(err, result) {
+          if (result) {
+            node.childNodes[0].textContent = result;
+          } else {
+            console.log("ERROR: Unable to parse inline style");
+            console.log(err);
+          }
+          done();
+        });
+      } else if (node.tagName == "STYLE" && !node.childNodes) {
+        var nodeId = node.id;
+        var style;
+        for (var i = 0; i < nodes.length; i++) {
+          var siblingNode = nodes[i];
+          if (siblingNode.parentNode.id == nodeId) {
+            style = siblingNode.textContent;
+            break;
+          }
+        }
+        if (style) {
+          parseCSS(account, baseUri, '', node.childNodes[0].textContent, function(err, result) {
+            if (result) {
+              node.childNodes[0].textContent = result;
+            } else {
+              console.log("ERROR: Unable to parse inline style");
+              console.log(err);
+            }
+            done();
+          });
+        } else {
+          done();
+        }
+      } else if (node.attributes && node.attributes.style) {
+        parseCSS(account, baseUri, '', node.attributes.style, function(err, result) {
+          if (result) {
+            node.attributes.style = result;
+          }
+          if (err) {
+            console.log("ERROR: Unable to parse inline CSS");
+            console.log(err);
+          }
+          handleAssets(account, baseUri, node.childNodes, done);
         });
       } else {
         handleAssets(account, baseUri, node.childNodes, done);
       }
     }, function(err) {
+      if (err) {
+        console.log("ERROR: Unable to cache assets");
+        console.log(err);
+      }
       done(err);
     });
   } else {
@@ -167,9 +221,53 @@ function handleAssets(account, baseUri, nodes, done) {
   }
 }
 
+function parseCSS(account, baseUri, relativeUri, body, done) {
+  var assetRegex = /([\s\S]*?)(url\(([^)]+)\))(?!\s*[;,]?\s*\/\*\s*\*\/)|([\s\S]+)/img;
+  var group;
+  var result = "";
+  async.whilst(function() {
+    group = assetRegex.exec(body);
+    return group != null;
+  }, function(done) {
+    if (group[4] == null) {
+      result = result + group[1];
+      var assetHref = group[3].replace(/['"]/g, "");
+      if (assetHref.indexOf("data:") == 0) {
+        result = result + group[2];
+        done();
+      } else {
+        if (assetHref.indexOf("http") == 0) {
+          // Leave as is
+        } else if (assetHref.indexOf("//") == 0) {
+          assetHref = "http:" + assetHref;
+        } else {
+          assetHref = baseUri + assetHref;
+        }
+        cacheAsset(account, null, assetHref, function(err, key) {
+          if (!err && key) {
+            result = result + 'url("' + relativeUri + key + '")';
+          } else {
+            result = result + group[2];
+          }
+          if (err) {
+            console.log("ERROR: Unable to cache asset: " + assetHref);
+            console.log(err);
+          }
+          done();
+        });
+      }
+    } else {
+      result = result + group[4];
+      done();
+    }
+  }, function(err) {
+    done(err, result);
+  });
+}
 
 function cacheAsset(account, baseUri, href, done) {
-  if (href) {
+  if (href && href.indexOf("data:") != 0) {
+    console.log("Cache asset: " + href);
     if (href.indexOf("http") == 0) {
       // leave as is
     } else if (href.indexOf("//") == 0) {
@@ -217,36 +315,7 @@ function cacheAsset(account, baseUri, href, done) {
                   } else if (response.statusCode != 200) {
                     done(response.statusCode);
                   } else {
-                    var assetRegex = /([\s\S]*?)(url\(([^)]+)\))(?!\s*[;,]?\s*\/\*\s*\*\/)|([\s\S]+)/img;
-                    var group;
-                    var result;
-                    async.whilst(function() {
-                      group = assetRegex.exec(body);
-                      return group != null;
-                    }, function(done) {
-                      if (group[4] == null) {
-                        result = result + group[1];
-                        var assetHref = group[3].replace(/['"]/g, "");
-                        if (assetHref.indexOf("http") == 0) {
-                          // Leave as is
-                        } else if (assetHref.indexOf("//") == 0) {
-                          assetHref = "http:" + assetHref;
-                        } else {
-                          assetHref = href.substring(0, href.lastIndexOf("/") + 1) + assetHref;
-                        }
-                        cacheAsset(account, null, assetHref, function(err, key) {
-                          if (!err && key) {
-                            result = result + 'url("../' + key + '")';
-                          } else {
-                            result = group[2];
-                          }
-                          done(err);
-                        });
-                      } else {
-                        result = result + group[4];
-                        done();
-                      }
-                    }, function(err) {
+                    parseCSS(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
                       if (err) {
                         done(err);
                       } else {
