@@ -355,7 +355,7 @@ function cacheAsset(account, baseUri, href, recurse, complete) {
                     }).on('error', function(err) {
                       done(err);
                     }).on('uploaded', function(details) {
-                      done();
+                      done(null, key);
                     });
                     request.get(href).on('error', function(err) {
                       done(err);
