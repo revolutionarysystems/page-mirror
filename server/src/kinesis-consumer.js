@@ -178,7 +178,7 @@ function handleAssets(account, baseUri, nodes, done) {
         var styleNode;
         for (var i = 0; i < nodes.length; i++) {
           styleNode = nodes[i];
-          if (styleNode.parentNode.id == nodeId) {
+          if (styleNode.parentNode && styleNode.parentNode.id == nodeId) {
             style = styleNode.textContent;
             break;
           }
