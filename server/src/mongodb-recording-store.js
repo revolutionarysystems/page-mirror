@@ -3,6 +3,12 @@ var MongoDBRecordingStore = function(db) {
 	var recordingDB = db.collection("recordings");
 	var blacklistDB = db.collection("blacklist");
 	var eventDB = db.collection("events");
+	eventDB.ensureIndex("session", function(err){
+		if(err){
+			console.log("ERROR: Unable to ensure session index on eventDB");
+			console.log(err);
+		}
+	});
 	var assetDB = db.collection("assets");
 
 	this.persistRecording = function(recording, callback) {

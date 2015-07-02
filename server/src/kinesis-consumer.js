@@ -266,7 +266,7 @@ function parseCSS(account, baseUri, relativeUri, body, done) {
   });
 }
 
-function cacheAsset(account, baseUri, href, recurse, done) {
+function cacheAsset(account, baseUri, href, recurse, complete) {
   if (href && href.indexOf("data:") != 0) {
     if (href.indexOf("http") == 0) {
       // leave as is
@@ -275,104 +275,103 @@ function cacheAsset(account, baseUri, href, recurse, done) {
     } else {
       href = baseUri + href;
     }
-    recordingStore.retrieveAssetEntry(href, function(asset) {
-      if (!asset || (asset.broken && asset.time < new Date().getTime() - config.assets.broken_check_interval) || (!asset.broken && asset.time < new Date().getTime() - config.assets.check_interval)) {
-        //console.log("Cache asset: " + href);
-        recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: false}, function(err) {
+    var id = account + "::" + href;
+    recordingStore.retrieveAssetEntry(id, function(asset) {
+      var done = function(error, key) {
+        recordingStore.saveAssetEntry({
+          id: id,
+          key: key,
+          time: new Date().getTime(),
+          broken: error != null,
+          error: error
+        }, function(err) {
           if (err) {
             console.log("ERROR: Unable to log asset");
             console.log(err);
           }
-          request.head(href, function(error, response) {
-            if (error) {
-              recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: true, error: error}, function(err){
-                if(err){
-                  console.log("ERROR: Unable to log broken asset");
-                  console.log(err);
-                }
-                done(error);
-              });
-            } else if (response.statusCode != 200) {
-              recordingStore.saveAssetEntry({id: href, time: new Date().getTime(), broken: true, error: response.statusCode}, function(err){
-                if(err){
-                  console.log("ERROR: Unable to log broken asset");
-                  console.log(err);
-                }
-                done(response.statusCode);
-              });
-            } else {
-              var lastModified = response.headers['last-modified'];
-              var contentType = response.headers['content-type'];
-              var key = account + "/" + md5(href + lastModified);
-              s3.headObject({
-                Bucket: config.assets.bucket,
-                Key: key
-              }, function(err, data) {
-                if (data) {
-                  done(null, key);
+          complete(error, key);
+        });
+      };
+      if (!asset || (asset.broken && asset.time < new Date().getTime() - config.assets.broken_check_interval) || (!asset.broken && asset.time < new Date().getTime() - config.assets.check_interval)) {
+        //console.log("Cache asset: " + href);
+        request.head(href, function(error, response) {
+          if (error) {
+            done(error);
+          } else if (response.statusCode != 200) {
+            done(response.statusCode);
+          } else {
+            var lastModified = response.headers['last-modified'];
+            var contentType = response.headers['content-type'];
+            var key = account + "/" + md5(href + lastModified);
+            s3.headObject({
+              Bucket: config.assets.bucket,
+              Key: key
+            }, function(err, data) {
+              if (data) {
+                done(null, key);
+              } else {
+                if (err && err.code != "NotFound") {
+                  done(err);
                 } else {
-                  if (err && err.code != "NotFound") {
-                    done(err);
+                  if (recurse && contentType.indexOf("text/css") == 0) {
+                    request(href, function(err, response, body) {
+                      if (err) {
+                        done(err);
+                      } else if (response.statusCode != 200) {
+                        done(response.statusCode);
+                      } else {
+                        parseCSS(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
+                          if (err) {
+                            done(err);
+                          } else {
+                            s3.putObject({
+                              Bucket: config.assets.bucket,
+                              Key: key,
+                              Body: result,
+                              ACL: "public-read",
+                              ContentType: contentType,
+                              Metadata: {
+                                lastModified: lastModified || "unknown",
+                                source: href
+                              }
+                            }, function(err, data) {
+
+                              done(err, key);
+                            });
+                          }
+                        });
+                      }
+                    })
                   } else {
-                    if (recurse && contentType.indexOf("text/css") == 0) {
-                      request(href, function(err, response, body) {
-                        if (err) {
-                          done(err);
-                        } else if (response.statusCode != 200) {
-                          done(response.statusCode);
-                        } else {
-                          parseCSS(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
-                            if (err) {
-                              done(err);
-                            } else {
-                              s3.putObject({
-                                Bucket: config.assets.bucket,
-                                Key: key,
-                                Body: result,
-                                ACL: "public-read",
-                                ContentType: contentType,
-                                Metadata: {
-                                  lastModified: lastModified || "unknown",
-                                  source: href
-                                }
-                              }, function(err, data) {
-                                done(err, key);
-                              });
-                            }
-                          });
-                        }
-                      })
-                    } else {
-                      var upload = s3Stream.upload({
-                        Bucket: config.assets.bucket,
-                        Key: key,
-                        ACL: "public-read",
-                        ContentType: contentType,
-                        Metadata: {
-                          lastModified: lastModified || "unknown",
-                          source: href
-                        }
-                      }).on('error', function(err) {
-                        done(err);
-                      }).on('uploaded', function(details) {
-                        done();
-                      });
-                      request.get(href).on('error', function(err) {
-                        done(err);
-                      }).pipe(upload);
-                    }
+                    var upload = s3Stream.upload({
+                      Bucket: config.assets.bucket,
+                      Key: key,
+                      ACL: "public-read",
+                      ContentType: contentType,
+                      Metadata: {
+                        lastModified: lastModified || "unknown",
+                        source: href
+                      }
+                    }).on('error', function(err) {
+                      done(err);
+                    }).on('uploaded', function(details) {
+                      done();
+                    });
+                    request.get(href).on('error', function(err) {
+                      done(err);
+                    }).pipe(upload);
                   }
                 }
-              });
-            }
-          });
+              }
+            });
+          }
         });
       } else {
-        done();
+        complete(null, asset.key);
       }
     });
   } else {
-    done();
+    complete();
   }
 }
 
