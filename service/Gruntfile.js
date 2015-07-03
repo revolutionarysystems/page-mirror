@@ -28,7 +28,7 @@ module.exports = function(grunt) {
       dist: {
         options: {
           mode: "tgz",
-          archive: 'dist/page-mirror-server.tar.gz'
+          archive: 'dist/page-mirror-service.tar.gz'
         },
         files: [{
           expand: true,
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
         },{
           expand: true,
           cwd: "node_modules",
-          src: ['mongodb/**/*', 'kinesis-client-library/**/*', 'async/**/*', 'node-uuid/**/*', 'aws-sdk/**/*', 'request/**/*', 's3-upload-stream/**/*', 'MD5/**/*'],
+          src: ['mongodb/**/*', 'body-parser/**/*', 'express/**/*', 'async/**/*', 'node-uuid/**/*'],
           dest: 'node_modules/'
         }]
       }

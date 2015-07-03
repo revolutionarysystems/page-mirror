@@ -1,9 +1,11 @@
 module.exports = {
-	assets:{
-		bucket: "echo-reflect-dev-assets",
-		check_interval: 60000,
-		broken_check_interval: 120000
+	protocol: "http",
+	ssl: {
+		key: "",
+		cert: "",
+		ca: ""
 	},
+	port: 8070,
 	db: {
 		host:"localhost",
 		database:"recordings",

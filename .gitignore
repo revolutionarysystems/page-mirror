@@ -17,3 +17,5 @@
 /mirror/haven_cache
 /mirror/dist
 /demo/src/static/aws.js
+/service/node_modules
+/service/build

@@ -1,0 +1,14 @@
+{
+	"name": "page-mirror-service",
+	"master": "../haven.json",
+	"artifacts":[
+		{
+			"files": [
+				{"dist":""}
+			]
+		}
+	],
+    "dependencies": [
+		
+    ]
+}

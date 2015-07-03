@@ -1,18 +1,15 @@
 {
-  "name": "page-mirror-server",
+  "name": "page-mirror-service",
   "version": "0.1.0",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "MD5": "^1.2.2",
     "async": "^1.2.1",
-    "aws-sdk": "^2.1.36",
-    "kinesis-client-library": "^0.2.7",
+    "body-parser": "^1.12.4",
+    "express": "*",
     "mongodb": "~1.4.31",
-    "node-uuid": "^1.4.3",
-    "request": "^2.58.0",
-    "s3-upload-stream": "^1.0.7"
+    "node-uuid": "^1.4.3"
   },
   "engines": {
     "node": ">=0.8"

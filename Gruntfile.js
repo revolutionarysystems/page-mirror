@@ -4,7 +4,8 @@ module.exports = function(grunt) {
     return {
       'client': cmd,
       'mirror': cmd,
-      'server': cmd
+      'server': cmd,
+      'service': cmd
     };
   }
 
