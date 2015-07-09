@@ -18,7 +18,7 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
   } else {
     console.log("Connected to db");
     recordingStore = new MongoDBRecordingStore(db);
-    
+
     // Web Server
 
     var httpApp = express();
@@ -55,6 +55,8 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
           res.status(500).send(err);
+        } else if (!recording) {
+          res.status(404).send();
         } else {
           recordingStore.retrieveEvents(recording.session, function(err, events) {
             if (err) {
@@ -69,24 +71,40 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
     });
 
     httpApp.get("/searchRecordings", function(req, res) {
-      recordingStore.findRecordings(JSON.parse(req.query.query), function(err, recordings) {
-        res.set('Access-Control-Allow-Origin', '*');
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.send(recordings);
-        }
-      });
+      var query;
+      try {
+        query = JSON.parse(req.query.query);
+      } catch (err) {
+        res.status(400).send(err);
+      }
+      if (query) {
+        recordingStore.findRecordings(query, function(err, recordings) {
+          res.set('Access-Control-Allow-Origin', '*');
+          if (err) {
+            res.status(500).send(err);
+          } else {
+            res.send(recordings);
+          }
+        });
+      }
     });
 
     httpApp.get("/countRecordings", function(req, res) {
-      recordingStore.countRecordings(JSON.parse(req.query.query), function(err, count) {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res.send(count + "");
-        }
-      });
+      var query;
+      try {
+        query = JSON.parse(req.query.query);
+      } catch (err) {
+        res.status(400).send(err);
+      }
+      if (query) {
+        recordingStore.countRecordings(query, function(err, count) {
+          if (err) {
+            res.status(500).send(err);
+          } else {
+            res.send(count + "");
+          }
+        });
+      }
     });
   }
 });
