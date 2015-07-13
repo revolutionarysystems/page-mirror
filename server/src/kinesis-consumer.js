@@ -220,7 +220,11 @@ function cacheAsset(account, baseUri, href, recurse, complete) {
       };
       if (!asset || (asset.broken && asset.time < new Date().getTime() - config.assets.broken_check_interval) || (!asset.broken && asset.time < new Date().getTime() - config.assets.check_interval)) {
         //console.log("Cache asset: " + href);
-        request.head(href, function(error, response) {
+        request.head(href, {
+          headers: {
+            "Referer": baseUri
+          }
+        }, function(error, response) {
           if (error) {
             done(error);
           } else if (response.statusCode != 200) {
@@ -240,7 +244,11 @@ function cacheAsset(account, baseUri, href, recurse, complete) {
                   done(err);
                 } else {
                   if (recurse && contentType.indexOf("text/css") == 0) {
-                    request(href, function(err, response, body) {
+                    request(href, {
+                      headers: {
+                        "Referer": baseUri
+                      }
+                    }, function(err, response, body) {
                       if (err) {
                         done(err);
                       } else if (response.statusCode != 200) {
