@@ -14,7 +14,7 @@ var util = require('util');
 var log_file = fs.createWriteStream(__dirname + '/' + config.log, {flags : 'w'});
 
 console.log = function(message){
-  log_file.write(util.format(message) + '\n');
+  log_file.write(new Date().toString() + ": " + util.format(message) + '\n');
 }
 
 // Kinesis Consumer 
@@ -81,7 +81,7 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
 // Process Updates
 
 function handleUpdate(update, done) {
-  console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+  //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
   if (update.event == "initialize") {
     handleAssets(update.account, update.args.base, update.args.children, function() {
       recordUpdate(update, done);

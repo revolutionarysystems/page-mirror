@@ -19,3 +19,5 @@
 /demo/src/static/aws.js
 /service/node_modules
 /service/build
+/server/build
+/server/page-mirror-server.log
