@@ -38,7 +38,7 @@ module.exports = function(grunt) {
         },{
           expand: true,
           cwd: "node_modules",
-          src: ['mongodb/**/*', 'kinesis-client-library/**/*', 'async/**/*', 'node-uuid/**/*', 'aws-sdk/**/*', 'request/**/*', 's3-upload-stream/**/*', 'MD5/**/*'],
+          src: ['mongodb/**/*', 'aws-kcl/**/*', 'async/**/*', 'node-uuid/**/*', 'aws-sdk/**/*', 'request/**/*', 's3-upload-stream/**/*', 'MD5/**/*'],
           dest: 'node_modules/'
         }]
       }

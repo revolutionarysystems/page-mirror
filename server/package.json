@@ -7,8 +7,8 @@
   "dependencies": {
     "MD5": "^1.2.2",
     "async": "^1.2.1",
+    "aws-kcl": "^0.5.0",
     "aws-sdk": "^2.1.36",
-    "kinesis-client-library": "^0.2.7",
     "mongodb": "~1.4.31",
     "node-uuid": "^1.4.3",
     "request": "^2.58.0",

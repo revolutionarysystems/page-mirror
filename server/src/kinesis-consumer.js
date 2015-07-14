@@ -1,5 +1,4 @@
 var AWS = require('aws-sdk');
-var kcl = require('kinesis-client-library');
 var async = require('async');
 var MongoDBRecordingStore = require("./mongodb-recording-store.js");
 var MongoClient = require('mongodb').MongoClient;
@@ -9,28 +8,58 @@ var request = require('request');
 var s3 = new AWS.S3();
 var md5 = require('MD5');
 var s3Stream = require('s3-upload-stream')(s3);
+var kcl = require('aws-kcl');
+var util = require('util');
+
+var log_file = fs.createWriteStream(__dirname + '/' + config.log, {flags : 'w'});
+
+console.log = function(message){
+  log_file.write(util.format(message) + '\n');
+}
 
 // Kinesis Consumer 
 
 var consumer = {
-  initialize: function(done) {
+  initialize: function(initializeInput, done) {
     done()
   },
 
-  processRecords: function(records, done) {
+  processRecords: function(processRecordsInput, done) {
+    if (!processRecordsInput || !processRecordsInput.records) {
+      done();
+      return;
+    }
+    var records = processRecordsInput.records;
     async.eachSeries(records, function(record, done) {
-      var string = record.Data.toString('utf8');
+      var string = new Buffer(record.data, 'base64').toString();
+      //var string = record.Data.toString('utf8');
       var data = JSON.parse(string);
       handleUpdate(data, function(err) {
         done(err);
       });
     }, function(err) {
-      done(err, err == null);
+      if (err) {
+        console.log("ERROR: Unable to process records");
+        console.log(err);
+        done();
+      } else {
+        processRecordsInput.checkpointer.checkpoint(
+          function(err, sn) {
+            done();
+          }
+        );
+      }
     });
   },
 
-  shutdown: function(done) {
-    done();
+  shutdown: function(shutdownInput, done) {
+    if (shutdownInput.reason !== 'TERMINATE') {
+      done();
+      return;
+    }
+    shutdownInput.checkpointer.checkpoint(function(err) {
+      done();
+    });
   }
 };
 
@@ -44,14 +73,15 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
   } else {
     console.log("Connected to db");
     recordingStore = new MongoDBRecordingStore(db);
-    kcl.AbstractConsumer.extend(consumer);
+    //kcl.AbstractConsumer.extend(consumer);
+    kcl(consumer).run();
   }
 });
 
 // Process Updates
 
 function handleUpdate(update, done) {
-  //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+  console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
   if (update.event == "initialize") {
     handleAssets(update.account, update.args.base, update.args.children, function() {
       recordUpdate(update, done);
