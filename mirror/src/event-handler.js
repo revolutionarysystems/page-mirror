@@ -48,13 +48,13 @@ var PageMirrorEventHandler = function(options) {
 				var style = document.createElement('style')
 				style.type = 'text/css'
 				style.innerHTML = '#revsys-pagemirror-mouse{' +
-				    'border:1px solid red;' +
-				    'width:10px;' +
-				    'height:10px;' +
-				    'display:block;' +
-				    'position:fixed;' +
-				    'top:0px;' +
-				    'left:0px;' +
+					'width:18px;' +
+					'height:30px;' +
+					'display:block;' +
+					'position:fixed;' +
+					'top:0;' +
+					'left:0;' +
+					'background:url("/common/mouse.png") no-repeat;' +
 				'}' +
 				'#revsys-pagemirror-mouse.pressed{' +
 				    'background-color:red;' +
@@ -124,6 +124,10 @@ var PageMirrorEventHandler = function(options) {
 	}
 
 	eventListeners.visibilitychange = function(args){
+		//var mouse = document.getElementById("revsys-pagemirror-mouse");
+		//mouse.className = args;
+		console.log('visibility', args);
+
 		if (window.parent && window.parent.visibilitychange) {
 			window.parent.visibilitychange(args.visibility);
 		}
