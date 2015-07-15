@@ -57,6 +57,9 @@ var PageMirrorEventHandler = function(options) {
 					'background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAeCAQAAACLBYanAAABnUlEQVQ4y5XTTUjTcRzH8bfu/x/mwzwkCIMI6qKIODq0BsMWVANjB8EdgkEnFYTwYNChMNl5XoagkDBXUSjRQVSU8AEEuyjRpUTwocMOPhBUZEOtjwetTd3/F31Pvy+8+P6e+EAlDbj5Rz1BPKLCRFyE8BPmF+/JGlAgGLY3GrNulvjpiKqCr22bxUDWwyI/HM7k292U1Kvz4jEuI5L6VS16sI1IGpJXJM4+SHF+c4827C6SlBgmSVJCbvGcUiOSBlQi0o7bHVU7Tym9S58RQYwXdnk7KSOCZp5ZxBgxIoiQsmhmHMuALGKMWIR5S5lVmGzxgQM+ccM1e414AZSk82ixxxoZtpnLQxlG8XOFc/CNJHH2z9xukut0MAzcIeqhLkegGIr4zUOirA7yavT7DF6aoJ7IiW+5sHtJtrgP1LLwQNKybok3J4Owx0fqj7v4ZY1JSovPRHPoIp14/nY1TLdKWldEDDvnp9uneUmDYo2QE/LzrkPSsgJi4k9aTleGqv2bFawwzRc3U+wUnuVjDvGVl9w25foqLVTyf3UIgu+1MCS8LUUAAAAASUVORK5CYII=") no-repeat;' +
 					'z-index:99999999' +
 				'}' +
+				'#revsys-pagemirror-mouse.hidden{' +
+				    'display:none;' +
+				'}' + 
 				'#revsys-pagemirror-mouse.pressed{' +
 				    'background-color:red;' +
 				'}' + 
