@@ -116,6 +116,7 @@ var PageMirrorPlayer = function(config) {
 	}
 
 	this.skipToTimestamp = function(time) {
+		console.log('skipToTimestamp:', time);
 		var timestamp = time.getTime();
 		var event = this.session.events[0];
 		for (var i = 1; i < this.session.events.length; i++) {
