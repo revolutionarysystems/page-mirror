@@ -43,6 +43,17 @@ var PageMirrorPlayer = function(config) {
 					session.events = events;
 				}
 				var lastEvent = session.events[session.events.length - 1];
+				if(options.length && lastEvent.time < session.startTime + options.length){
+					lastEvent = {
+						_id: "end",
+						session: lastEvent.session,
+						event: "end",
+						time: session.startTime + options.length,
+						args: {}
+					}
+					session.pages[session.pages.length-1].endTime = session.startTime + options.length;
+					session.events.push(lastEvent);
+				}
 				session.endTime = lastEvent.time;
 				session.outstandingEvents = session.events.slice();
 				var pages = [];
