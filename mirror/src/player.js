@@ -6,7 +6,9 @@ var PageMirrorPlayer = function(config) {
 
 	config = config || {};
 
-	var eventHandler = new PageMirrorEventHandler({base: config.base});
+	var eventHandler = new PageMirrorEventHandler({
+		base: config.base
+	});
 
 	this.session;
 	this.state = "Stopped";
@@ -27,28 +29,40 @@ var PageMirrorPlayer = function(config) {
 				session.events = options.event ? session.events.slice(options.event) : session.events;
 				var diff = session.events[0].time - session.startTime;
 				session.startTime = session.events[0].time;
-				session.outstandingEvents = session.events.slice();
-				if (options.event) {
-					var pages = [];
-					var prevPage = null;
-					for (var i = 0; i < session.pages.length; i++) {
-						var page = session.pages[i];
-						if (page.index < options.event) {
-							prevPage = page;
-						} else {
-							page.index = page.index - options.event;
-							pages.push(page);
+				if (options.length) {
+					var events = [];
+					var endTime = session.startTime + options.length;
+					for(var i=0; i<session.events.length; i++){
+						var event = session.events[i];
+						if(event.time <= endTime){
+							events.push(event);
+						}else{
+							break;
 						}
 					}
-					if (prevPage != null) {
-						prevPage.index = 0;
-						prevPage.startTime = session.startTime;
-						pages = [prevPage].concat(pages);
-					}
-					session.pages = pages;
+					session.events = events;
 				}
-				var lastEvent = session.events[session.events.length-1];
+				var lastEvent = session.events[session.events.length - 1];
 				session.endTime = lastEvent.time;
+				session.outstandingEvents = session.events.slice();
+				var pages = [];
+				var prevPage = null;
+				for (var i = 0; i < session.pages.length; i++) {
+					var page = session.pages[i];
+					if (page.startTime <= session.startTime) {
+						prevPage = page;
+					} else if(page.startTime < session.endTime){
+						if(page.endTime > session.endTime){
+							page.endTime = session.endTime;
+						}
+						pages.push(page);
+					}
+				}
+				if (prevPage != null) {
+					prevPage.startTime = session.startTime;
+					pages = [prevPage].concat(pages);
+				}
+				session.pages = pages;
 				$this.session = session;
 				beforeCallback = options.before;
 				updateCallback = options.update;

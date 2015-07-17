@@ -25,11 +25,13 @@
 		}	
 	}
 	init();
-	var sessionId = window.location.hash.substring(1);
-	var event = null;
-	if(sessionId.indexOf(":") > -1){
-		event = eval(sessionId.substring(sessionId.indexOf(":")+1));
-		sessionId = sessionId.substring(0, sessionId.indexOf(":"))
+	var hash = window.location.hash.substring(1);
+	var tokens = hash.split(":");
+	var sessionId = tokens[0];
+	var event = tokens[1]*1;
+	var length = null;
+	if(tokens.length == 3){
+		length = tokens[2]*1;
 	}
-	player.play(sessionId, {event: event, before: before, update: update, after: after});
+	player.play(sessionId, {event: event, length: length, before: before, update: update, after: after});
 </script>
