@@ -31,26 +31,28 @@ var PageMirrorClient = function(updateHandler, options) {
   var initialized = false;
 
   function sendUpdate(event, args) {
-    var eventIndex = sessionStorage.eventIndex;
-    if(eventIndex == undefined){
-      eventIndex = -1;
+    if (initialized || event == "initialize") {
+      var eventIndex = sessionStorage.eventIndex;
+      if (eventIndex == undefined) {
+        eventIndex = -1;
+      }
+      eventIndex = eventIndex * 1 + 1;
+      sessionStorage.eventIndex = eventIndex;
+      var now = new Date().getTime();
+      if (initialized) {
+        options.onUpdate(event, eventIndex, args);
+      } else {
+        options.onInit(event, eventIndex, args);
+      }
+      updateHandler.send({
+        account: options.account,
+        session: sessionId,
+        time: now,
+        index: eventIndex,
+        event: event,
+        args: args
+      });
     }
-    eventIndex = eventIndex*1 + 1;
-    sessionStorage.eventIndex = eventIndex;
-    var now = new Date().getTime();
-    if(initialized){
-      options.onUpdate(event, eventIndex, args);
-    }else{
-      options.onInit(event, eventIndex, args);
-    }
-    updateHandler.send({
-      account: options.account,
-      session: sessionId,
-      time: now,
-      index: eventIndex,
-      event: event,
-      args: args
-    });
   }
 
   var mirrorClient = new TreeMirrorClient(window.document, {
