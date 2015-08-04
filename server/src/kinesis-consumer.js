@@ -12,6 +12,10 @@ var kcl = require('aws-kcl');
 var util = require('util');
 var url = require('url');
 
+if(fs.existsSync(__dirname + '/' + config.log)){
+  fs.renameSync(__dirname + '/' + config.log, __dirname + '/' + config.log + '.' + new Date().toISOString().replace(/-/g, "").replace("T", "_").replace(/:/g, "").replace(/\..*/, ""));
+}
+
 var log_file = fs.createWriteStream(__dirname + '/' + config.log, {
   flags: 'w'
 });
