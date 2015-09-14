@@ -1,4 +1,4 @@
-var MongoDBRecordingStore = function(db) {
+var MongoDBDataStore = function(db) {
 
 	var recordingDB = db.collection("recordings");
 	var blacklistDB = db.collection("blacklist");
@@ -10,6 +10,7 @@ var MongoDBRecordingStore = function(db) {
 		}
 	});
 	var assetDB = db.collection("assets");
+	var cachedAssetsDB = db.collection("cachedAssets");
 	var hostDB = db.collection("hosts");
 
 	this.persistRecording = function(recording, callback) {
@@ -119,6 +120,11 @@ var MongoDBRecordingStore = function(db) {
 		})
 	}
 
+	this.saveCachedAsset = function(asset, callback){
+		asset._id = asset.id;
+		cachedAssetsDB.save(asset, callback);
+	}
+
 	this.saveAssetHost = function(host, callback) {
 		host._id = host.name;
 		hostDB.save(host, callback);
@@ -144,4 +150,4 @@ var MongoDBRecordingStore = function(db) {
 
 }
 
-module.exports = MongoDBRecordingStore;
+module.exports = MongoDBDataStore;

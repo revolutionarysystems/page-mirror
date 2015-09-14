@@ -3,7 +3,7 @@
 <script src="ajax.js"></script>
 <script src="player.js"></script>
 <script>
-	var player = new PageMirrorPlayer({url: "http://localhost:8070", base:"https://s3-eu-west-1.amazonaws.com/echo-reflect-dev-assets/"});
+	var player = new PageMirrorPlayer({url: "http://localhost:8070", base:"http://localhost:8070/foobar", zbase:"https://s3-eu-west-1.amazonaws.com/echo-reflect-dev-assets/"});
 	var init = function(){
 		if(parent && parent.window != window && parent.window.init){
 			parent.window.init();

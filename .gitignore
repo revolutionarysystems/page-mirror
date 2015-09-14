@@ -21,3 +21,6 @@
 /service/build
 /server/build
 /server/page-mirror-server.log
+/server/page-mirror-server.log.*
+/server/page-mirror-assets.log
+/server/page-mirror-assets.log.*

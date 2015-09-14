@@ -1,5 +1,5 @@
 var async = require('async');
-var MongoDBRecordingStore = require("./mongodb-recording-store.js");
+var MongoDBRecordingStore = require("./mongodb-data-store.js");
 var MongoClient = require('mongodb').MongoClient;
 var config = require('./config.js');
 var fs = require("fs");
@@ -67,6 +67,28 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
             }
           });
         }
+      });
+    });
+
+    httpApp.get("/deferred-asset", function(req, res){
+      console.log("deferred asset: " + req.query.key);
+      var key = new Buffer(req.query.key, 'base64').toString();
+      console.log("key = " + key);
+      var tokens = key.split("::");
+      var account = tokens[0];
+      var href = tokens[1];
+      var time = tokens[2]*1;
+      console.log(account);
+      console.log(href);
+      console.log(time);
+      recordingStore.retrieveAsset({
+        id: account + "::" + href,
+        time: time
+      }, function(err, asset){
+        if(asset){
+          href = asset.key;
+        }
+        res.status(500).send("Not Yet Implemented");
       });
     });
 
