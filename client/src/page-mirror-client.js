@@ -21,10 +21,15 @@ var PageMirrorClient = function(updateHandler, options) {
     return uuid;
   };
 
-  var sessionId = sessionStorage.sessionId;
+  var sessionId;
+  if (hasSessionStorage()) {
+    sessionId = sessionStorage.sessionId;
+  }
   if (sessionId == undefined) {
     sessionId = generateUUID();
-    sessionStorage.sessionId = sessionId;
+    if (hasSessionStorage()) {
+      sessionStorage.sessionId = sessionId;
+    }
   }
   this.sessionId = sessionId;
 
@@ -32,12 +37,17 @@ var PageMirrorClient = function(updateHandler, options) {
 
   function sendUpdate(event, args) {
     if (initialized || event == "initialize") {
-      var eventIndex = sessionStorage.eventIndex;
+      var eventIndex;
+      if (hasSessionStorage()) {
+        eventIndex = sessionStorage.eventIndex;
+      }
       if (eventIndex == undefined) {
         eventIndex = -1;
       }
       eventIndex = eventIndex * 1 + 1;
-      sessionStorage.eventIndex = eventIndex;
+      if (hasSessionStorage()) {
+        sessionStorage.eventIndex = eventIndex;
+      }
       var now = new Date().getTime();
       if (initialized) {
         options.onUpdate(event, eventIndex, args);
@@ -232,6 +242,19 @@ var PageMirrorClient = function(updateHandler, options) {
       }
     });
   });
+
+  function hasSessionStorage() {
+    try {
+      if (!!window.sessionStorage) {
+        window.sessionStorage.pmc_test = "test";
+        return window.sessionStorage.pmc_test == "test";
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
 
 }
 
