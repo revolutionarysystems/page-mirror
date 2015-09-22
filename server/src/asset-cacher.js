@@ -66,7 +66,6 @@ var AssetCacher = function(config, dataStore, cssParser) {
 						logAssetEntry(asset, err, done);
 					} else {
 						// This asset requires caching
-						console.log("Caching " + href);
 						// Request the asset
 						request(href, {
 							headers: {
@@ -83,7 +82,6 @@ var AssetCacher = function(config, dataStore, cssParser) {
 							} else {
 								// If the asset is a css file, parse it for more assets
 								if (contentType && contentType.indexOf("text/css") == 0) {
-									console.log("Caching css file");
 									cssParser.parse(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
 										if (err) {
 											logAssetEntry(asset, err, done);

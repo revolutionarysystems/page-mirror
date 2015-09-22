@@ -3,7 +3,7 @@ var fs = require("fs");
 
 var RecordingService = function(config, dataStore, assetHandler, cssParser) {
   this.handleUpdate = function(update, done) {
-    console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
+    //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
     async.waterfall([function(done) {
       if (update.event == "initialize") {
         handleAssets(update.account, update.args.base, update.args.children, done);

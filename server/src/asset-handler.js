@@ -18,8 +18,6 @@ var AssetHandler = function(config, dataStore, assetCacher) {
 				href = baseUri + href;
 			}
 
-			console.log("Checking cache for " + href);
-
 			// Check configured blacklist for assets to ignore
 			for (var i = 0; i < config.assets.blacklist.length; i++) {
 				var pattern = config.assets.blacklist[i];
@@ -37,7 +35,6 @@ var AssetHandler = function(config, dataStore, assetCacher) {
 			dataStore.retrieveAssetEntry(id, function(asset) {
 				// If cached recently, use existing entry
 				if (asset && !asset.broken && (asset.time > new Date().getTime() - config.assets.check_interval)) {
-					console.log("Recently cached, skipping check");
 					done(null, asset.key);
 				} else {
 					// If broken and not within retry interval, leave as is

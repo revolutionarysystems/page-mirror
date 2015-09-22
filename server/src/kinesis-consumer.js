@@ -34,7 +34,6 @@ var consumer = {
   },
 
   processRecords: function(processRecordsInput, done) {
-    console.log("processRecords");
     if (!processRecordsInput || !processRecordsInput.records) {
       done();
       return;
@@ -82,12 +81,10 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
   } else {
     console.log("Connected to db");
     var dataStore = new MongoDBDataStore(db);
-    console.log("Starting recording service");
     var assetHandler1 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore));
     var cssParser = new CSSParser(assetHandler1);
     var assetHandler2 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore, cssParser));
     recordingService = new RecordingService(config, dataStore, assetHandler2, cssParser);
-    console.log("Started");
     kcl(consumer).run();
   }
 });

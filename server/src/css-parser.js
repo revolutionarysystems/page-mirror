@@ -5,7 +5,6 @@ var CSSParser = function(assetHandler) {
 	var assetRegex = /([\s\S]*?)(url\(([^)]+)\))(?!\s*[;,]?\s*\/\*\s*\*\/)|([\s\S]+)/img;
 
 	this.parse = function(account, baseUri, relativeUri, body, done) {
-		console.log("Parsing css");
 		var group;
 		var result = "";
 		async.whilst(function() {
