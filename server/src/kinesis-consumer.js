@@ -83,14 +83,10 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
     console.log("Connected to db");
     var dataStore = new MongoDBDataStore(db);
     console.log("Starting recording service");
-    // var assetHandler1 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore));
-    // var cssParser = new CSSParser(assetHandler1);
-    // var assetHandler2 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore, cssParser));
-    // recordingService = new RecordingService(config, dataStore, assetHandler2, cssParser);
-    var assetCacher = new DeferredAssetCacher(config);
-    var assetHandler = new AssetHandler(config, dataStore, assetCacher);
-    var cssParser = new CSSParser(assetHandler);
-    recordingService = new RecordingService(config, dataStore, assetHandler, cssParser);
+    var assetHandler1 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore));
+    var cssParser = new CSSParser(assetHandler1);
+    var assetHandler2 = new AssetHandler(config, dataStore, new AssetCacher(config, dataStore, cssParser));
+    recordingService = new RecordingService(config, dataStore, assetHandler2, cssParser);
     console.log("Started");
     kcl(consumer).run();
   }

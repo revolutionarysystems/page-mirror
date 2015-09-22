@@ -44,9 +44,7 @@ var AssetCacher = function(config, dataStore, cssParser) {
 				} else {
 					logAssetEntry(asset, error, done);
 				}
-			} else if (response.statusCode != 200) {
-				console.log(response.statusCode);
-				console.log(response.statusText);
+			} else if (response.statusCode != 200) {				
 				// If request did not return status 200, mark asset as broken
 				logAssetEntry(asset, response.statusCode, done);
 			} else {
@@ -84,7 +82,7 @@ var AssetCacher = function(config, dataStore, cssParser) {
 								logAssetEntry(asset, response.statusCode, done);
 							} else {
 								// If the asset is a css file, parse it for more assets
-								if (contentType.indexOf("text/css") == 0) {
+								if (contentType && contentType.indexOf("text/css") == 0) {
 									console.log("Caching css file");
 									cssParser.parse(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
 										if (err) {
