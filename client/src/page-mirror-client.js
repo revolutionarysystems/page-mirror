@@ -37,30 +37,18 @@ var PageMirrorClient = function(updateHandler, options) {
 
   function sendUpdate(event, args) {
     if (initialized || event == "initialize") {
-      var eventIndex;
-      if (hasSessionStorage()) {
-        eventIndex = sessionStorage.eventIndex;
-      }
-      if (eventIndex == undefined) {
-        eventIndex = -1;
-      }
-      eventIndex = eventIndex * 1 + 1;
-      if (hasSessionStorage()) {
-        sessionStorage.eventIndex = eventIndex;
-      }
       var now = new Date().getTime();
-      if (initialized) {
-        options.onUpdate(event, eventIndex, args);
-      } else {
-        options.onInit(event, eventIndex, args);
+      if (!initialized) {
+        options.onInit(event, args);
       }
       updateHandler.send({
         account: options.account,
         session: sessionId,
         time: now,
-        index: eventIndex,
         event: event,
         args: args
+      }, function(){
+        options.onUpdate(event, args);
       });
     }
   }
@@ -259,9 +247,9 @@ var PageMirrorClient = function(updateHandler, options) {
 }
 
 PageMirrorClient.KinesisUpdateHandler = function(kinesisClient) {
-  this.send = function(update) {
+  this.send = function(update, callback) {
     kinesisClient.put(JSON.stringify(update), {
-      onSuccess: function() {},
+      onSuccess: callback,
       onError: function() {}
     });
   }

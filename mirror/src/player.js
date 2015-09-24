@@ -25,13 +25,24 @@ var PageMirrorPlayer = function(config) {
 			onSuccess: function(session) {
 				eventHandler.reset();
 				session.processedEvents = [];
-				session.preExistingEvents = options.event ? session.events.slice(0, options.event) : [];
-				session.events = options.event ? session.events.slice(options.event) : session.events;
+				session.preExistingEvents = [];
+				if(options.start){
+					var events = [];
+					for(var i=0; i< session.events.length; i++){
+						var event = session.events[i];
+						if(event.time < options.start){
+							session.preExistingEvents.push(event);
+						}else{
+							events.push(event);
+						}
+					}
+					session.events = events;
+				}
 				var diff = session.events[0].time - session.startTime;
 				session.startTime = session.events[0].time;
-				if (options.length) {
+				if (options.duration) {
 					var events = [];
-					var endTime = session.startTime + options.length;
+					var endTime = session.startTime + options.duration;
 					for(var i=0; i<session.events.length; i++){
 						var event = session.events[i];
 						if(event.time <= endTime){
@@ -43,15 +54,15 @@ var PageMirrorPlayer = function(config) {
 					session.events = events;
 				}
 				var lastEvent = session.events[session.events.length - 1];
-				if(options.length && lastEvent.time < session.startTime + options.length){
+				if(options.duration && lastEvent.time < session.startTime + options.duration){
 					lastEvent = {
 						_id: "end",
 						session: lastEvent.session,
 						event: "end",
-						time: session.startTime + options.length,
+						time: session.startTime + options.duration,
 						args: {}
 					}
-					session.pages[session.pages.length-1].endTime = session.startTime + options.length;
+					session.pages[session.pages.length-1].endTime = session.startTime + options.duration;
 					session.events.push(lastEvent);
 				}
 				session.endTime = lastEvent.time;
