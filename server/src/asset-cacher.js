@@ -19,7 +19,8 @@ var AssetCacher = function(config, dataStore, cssParser) {
 		// Execute a head request to get last modified date of asset
 		request.head(href, {
 			headers: {
-				"Referer": baseUri
+				"Referer": baseUri,
+				"X-Source": "echoreflect"
 			},
 			timeout: config.assets.head_timeout
 		}, function(error, response) {
@@ -69,7 +70,8 @@ var AssetCacher = function(config, dataStore, cssParser) {
 						// Request the asset
 						request(href, {
 							headers: {
-								"Referer": baseUri
+								"Referer": baseUri,
+								"X-Source": "echoreflect"
 							},
 							timeout: config.assets.timeout
 						}, function(err, response, body) {
