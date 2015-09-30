@@ -92,8 +92,7 @@ var PageMirrorPlayer = function(config) {
 								session.outstandingEvents = session.events.slice(events);
 							}
 							if ((session.preExistingEvents.length + session.events.length) < session.length) {
-								setTimeout(loadEvents, 3000);
-								//loadEvents();
+								loadEvents();
 							} else {
 								var lastEvent = session.events[session.events.length - 1];
 								if (options.duration && lastEvent.time < session.startTime + options.duration) {
