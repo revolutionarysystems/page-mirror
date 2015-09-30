@@ -48,9 +48,10 @@ var MongoDBDataStore = function(db) {
 		});
 	}
 
-	this.countEvents = function(session, callback) {
+	this.countEvents = function(session, endTime, callback) {
 		eventDB.find({
-			session: session
+			session: session,
+			time: {$lt: endTime}
 		}, function(err, cursor) {
 			if(err){
 				callback(err);

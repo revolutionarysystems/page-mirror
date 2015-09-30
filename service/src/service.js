@@ -58,19 +58,13 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
         } else if (!recording) {
           res.status(404).send();
         } else {
-          recordingStore.countEvents(recording.session, function(err, result) {
+          recordingStore.countEvents(recording.session, (req.query.start * 1) + (req.query.duration * 1), function(err, result) {
             if (err) {
               res.status(500).send(err);
             } else {
               recording.length = result;
-              recordingStore.retrieveLastEvent(recording.session, function(err, event) {
-                if (err) {
-                  res.status(500).send(err);
-                } else {
-                  recording.endTime = event.time;
-                  res.send(recording);
-                }
-              });
+              recording.endTime = (req.query.start * 1) + (req.query.duration * 1);
+              res.send(recording);
             }
           });
         }
@@ -78,7 +72,7 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
     });
 
     httpApp.get("/getEvents", function(req, res) {
-      recordingStore.retrieveEvents(req.query.session, req.query.offset*1, req.query.limit*1, function(err, events) {
+      recordingStore.retrieveEvents(req.query.session, req.query.offset * 1, req.query.limit * 1, function(err, events) {
         res.set('Access-Control-Allow-Origin', '*');
         if (err) {
           res.status(500).send(err);

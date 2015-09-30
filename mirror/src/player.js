@@ -20,51 +20,81 @@ var PageMirrorPlayer = function(config) {
 
 	this.play = function(id, options) {
 		options = options || {};
-		Ajax.getJSON(config.url + "/getRecording?id=" + id, {
+		Ajax.getJSON(config.url + "/getRecording?id=" + id + "&start=" + options.start + "&duration=" + options.duration, {
 			onError: options.error,
 			onSuccess: function(session) {
 				eventHandler.reset();
 				session.processedEvents = [];
 				session.preExistingEvents = [];
+				session.outstandingEvents = [];
 				session.events = [];
 				beforeCallback = options.before;
 				updateCallback = options.update;
 				afterCallback = options.after;
 				var loadEvents = function() {
-					Ajax.getJSON(config.url + "/getEvents?session=" + id + "&offset=" + session.events.length + "&limit=500", {
+					var url;
+					if (config.url.indexOf("http") == 0) {
+						url = config.url;
+					} else {
+						url = window.location.pathname + "/../" + config.url;
+					}
+					var offset = session.preExistingEvents.length + session.events.length
+					var limit = offset + 100 > session.length ? session.length - offset : 100
+					url = url + "/getEvents?session=" + id + "&offset=" + offset + "&limit=" + limit;
+					Ajax.getJSON(url, {
 						onError: options.error,
 						onSuccess: function(events) {
-							session.events = session.events.concat(events);
-							if (session.events.length < session.length) {
-								loadEvents();
-							} else {
+							var initialize = false;
+							if (session.events.length == 0) {
+								initialize = true;
+							}
+							if (initialize) {
 								if (options.start) {
-									var events = [];
-									for (var i = 0; i < session.events.length; i++) {
-										var event = session.events[i];
+									for (var i = 0; i < events.length; i++) {
+										var event = events[i];
 										if (event.time < options.start) {
 											session.preExistingEvents.push(event);
 										} else {
-											events.push(event);
+											session.events.push(event);
 										}
 									}
-									session.events = events;
+								} else {
+									session.events = session.events.concat(events);
 								}
-								var diff = session.events[0].time - session.startTime;
-								session.startTime = session.events[0].time;
-								if (options.duration) {
-									var events = [];
-									var endTime = session.startTime + options.duration;
-									for (var i = 0; i < session.events.length; i++) {
-										var event = session.events[i];
-										if (event.time <= endTime) {
-											events.push(event);
-										} else {
-											break;
+								if (session.events.length > 0) {
+									session.startTime = session.events[0].time;
+									var pages = [];
+									var prevPage = null;
+									for (var i = 0; i < session.pages.length; i++) {
+										var page = session.pages[i];
+										if (page.startTime <= session.startTime) {
+											prevPage = page;
+										} else if (page.startTime < session.endTime) {
+											if (page.endTime > session.endTime) {
+												page.endTime = session.endTime;
+											}
+											pages.push(page);
 										}
 									}
-									session.events = events;
+									if (prevPage != null) {
+										prevPage.startTime = session.startTime;
+										pages = [prevPage].concat(pages);
+									}
+									session.pages = pages;
+									$this.session = session;
+									if (beforeCallback) {
+										beforeCallback(session);
+									}
+									$this.skipToEvent(0);
 								}
+							} else {
+								session.events = session.events.concat(events);
+								session.outstandingEvents = session.events.slice(events);
+							}
+							if ((session.preExistingEvents.length + session.events.length) < session.length) {
+								setTimeout(loadEvents, 3000);
+								//loadEvents();
+							} else {
 								var lastEvent = session.events[session.events.length - 1];
 								if (options.duration && lastEvent.time < session.startTime + options.duration) {
 									lastEvent = {
@@ -74,34 +104,10 @@ var PageMirrorPlayer = function(config) {
 										time: session.startTime + options.duration,
 										args: {}
 									}
-									session.pages[session.pages.length - 1].endTime = session.startTime + options.duration;
+									session.pages[session.pages.length - 1].endTime = lastEvent.time;
 									session.events.push(lastEvent);
 								}
 								session.endTime = lastEvent.time;
-								session.outstandingEvents = session.events.slice();
-								var pages = [];
-								var prevPage = null;
-								for (var i = 0; i < session.pages.length; i++) {
-									var page = session.pages[i];
-									if (page.startTime <= session.startTime) {
-										prevPage = page;
-									} else if (page.startTime < session.endTime) {
-										if (page.endTime > session.endTime) {
-											page.endTime = session.endTime;
-										}
-										pages.push(page);
-									}
-								}
-								if (prevPage != null) {
-									prevPage.startTime = session.startTime;
-									pages = [prevPage].concat(pages);
-								}
-								session.pages = pages;
-								$this.session = session;
-								if (beforeCallback) {
-									beforeCallback(session);
-								}
-								$this.skipToEvent(0);
 							}
 						}
 					});
