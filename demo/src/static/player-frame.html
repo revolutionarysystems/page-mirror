@@ -3,7 +3,7 @@
 <script src="ajax.js"></script>
 <script src="player.js"></script>
 <script>
-	var player = new PageMirrorPlayer({url: "http://localhost:8070", base:"http://localhost:8070/foobar", zbase:"https://s3-eu-west-1.amazonaws.com/echo-reflect-dev-assets/"});
+	var player = new PageMirrorPlayer({url: "http://localhost:8070", base:"https://s3-eu-west-1.amazonaws.com/echo-reflect-dev-assets/"});
 	var init = function(){
 		if(parent && parent.window != window && parent.window.init){
 			parent.window.init();
@@ -28,10 +28,10 @@
 	var hash = window.location.hash.substring(1);
 	var tokens = hash.split(":");
 	var sessionId = tokens[0];
-	var event = tokens[1]*1;
+	var start = tokens[1]*1;
 	var length = null;
 	if(tokens.length == 3){
 		length = tokens[2]*1;
 	}
-	player.play(sessionId, {event: event, length: length, before: before, update: update, after: after});
+	player.play(sessionId, {start: start, duration: length, before: before, update: update, after: after});
 </script>

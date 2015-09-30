@@ -58,34 +58,52 @@ MongoClient.connect("mongodb://" + config.db.host + ":27017/" + config.db.databa
         } else if (!recording) {
           res.status(404).send();
         } else {
-          recordingStore.retrieveEvents(recording.session, function(err, events) {
+          recordingStore.countEvents(recording.session, function(err, result) {
             if (err) {
               res.status(500).send(err);
             } else {
-              recording.events = events;
-              res.send(recording);
+              recording.length = result;
+              recordingStore.retrieveLastEvent(recording.session, function(err, event) {
+                if (err) {
+                  res.status(500).send(err);
+                } else {
+                  recording.endTime = event.time;
+                  res.send(recording);
+                }
+              });
             }
           });
         }
       });
     });
 
-    httpApp.get("/deferred-asset", function(req, res){
+    httpApp.get("/getEvents", function(req, res) {
+      recordingStore.retrieveEvents(req.query.session, req.query.offset*1, req.query.limit*1, function(err, events) {
+        res.set('Access-Control-Allow-Origin', '*');
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send(events);
+        }
+      });
+    });
+
+    httpApp.get("/deferred-asset", function(req, res) {
       console.log("deferred asset: " + req.query.key);
       var key = new Buffer(req.query.key, 'base64').toString();
       console.log("key = " + key);
       var tokens = key.split("::");
       var account = tokens[0];
       var href = tokens[1];
-      var time = tokens[2]*1;
+      var time = tokens[2] * 1;
       console.log(account);
       console.log(href);
       console.log(time);
       recordingStore.retrieveAsset({
         id: account + "::" + href,
         time: time
-      }, function(err, asset){
-        if(asset){
+      }, function(err, asset) {
+        if (asset) {
           href = asset.key;
         }
         res.status(500).send("Not Yet Implemented");

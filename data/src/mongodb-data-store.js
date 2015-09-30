@@ -48,13 +48,36 @@ var MongoDBDataStore = function(db) {
 		});
 	}
 
-	this.retrieveEvents = function(session, callback) {
+	this.countEvents = function(session, callback) {
+		eventDB.find({
+			session: session
+		}, function(err, cursor) {
+			if(err){
+				callback(err);
+			}else{
+				cursor.count(callback);
+			}
+		});
+	}
+
+	this.retrieveLastEvent = function(session, callback){
+		eventDB.find({
+			session: session
+		}, function(err, cursor) {
+			cursor.sort({
+				time: -1
+			});
+			cursor.nextObject(callback);
+		});
+	}
+
+	this.retrieveEvents = function(session, offset, limit, callback) {
 		eventDB.find({
 			session: session
 		}, function(err, cursor) {
 			cursor.sort({
 				time: 1
-			});
+			}).skip(offset).limit(limit);
 			cursor.toArray(function(err, results) {
 				if (results) {
 					for (var i = 0; i < results.length; i++) {
@@ -120,7 +143,7 @@ var MongoDBDataStore = function(db) {
 		})
 	}
 
-	this.saveCachedAsset = function(asset, callback){
+	this.saveCachedAsset = function(asset, callback) {
 		asset._id = asset.id;
 		cachedAssetsDB.save(asset, callback);
 	}

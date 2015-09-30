@@ -26,73 +26,87 @@ var PageMirrorPlayer = function(config) {
 				eventHandler.reset();
 				session.processedEvents = [];
 				session.preExistingEvents = [];
-				if(options.start){
-					var events = [];
-					for(var i=0; i< session.events.length; i++){
-						var event = session.events[i];
-						if(event.time < options.start){
-							session.preExistingEvents.push(event);
-						}else{
-							events.push(event);
-						}
-					}
-					session.events = events;
-				}
-				var diff = session.events[0].time - session.startTime;
-				session.startTime = session.events[0].time;
-				if (options.duration) {
-					var events = [];
-					var endTime = session.startTime + options.duration;
-					for(var i=0; i<session.events.length; i++){
-						var event = session.events[i];
-						if(event.time <= endTime){
-							events.push(event);
-						}else{
-							break;
-						}
-					}
-					session.events = events;
-				}
-				var lastEvent = session.events[session.events.length - 1];
-				if(options.duration && lastEvent.time < session.startTime + options.duration){
-					lastEvent = {
-						_id: "end",
-						session: lastEvent.session,
-						event: "end",
-						time: session.startTime + options.duration,
-						args: {}
-					}
-					session.pages[session.pages.length-1].endTime = session.startTime + options.duration;
-					session.events.push(lastEvent);
-				}
-				session.endTime = lastEvent.time;
-				session.outstandingEvents = session.events.slice();
-				var pages = [];
-				var prevPage = null;
-				for (var i = 0; i < session.pages.length; i++) {
-					var page = session.pages[i];
-					if (page.startTime <= session.startTime) {
-						prevPage = page;
-					} else if(page.startTime < session.endTime){
-						if(page.endTime > session.endTime){
-							page.endTime = session.endTime;
-						}
-						pages.push(page);
-					}
-				}
-				if (prevPage != null) {
-					prevPage.startTime = session.startTime;
-					pages = [prevPage].concat(pages);
-				}
-				session.pages = pages;
-				$this.session = session;
+				session.events = [];
 				beforeCallback = options.before;
 				updateCallback = options.update;
 				afterCallback = options.after;
-				if (beforeCallback) {
-					beforeCallback(session);
+				var loadEvents = function() {
+					Ajax.getJSON(config.url + "/getEvents?session=" + id + "&offset=" + session.events.length + "&limit=500", {
+						onError: options.error,
+						onSuccess: function(events) {
+							session.events = session.events.concat(events);
+							if (session.events.length < session.length) {
+								loadEvents();
+							} else {
+								if (options.start) {
+									var events = [];
+									for (var i = 0; i < session.events.length; i++) {
+										var event = session.events[i];
+										if (event.time < options.start) {
+											session.preExistingEvents.push(event);
+										} else {
+											events.push(event);
+										}
+									}
+									session.events = events;
+								}
+								var diff = session.events[0].time - session.startTime;
+								session.startTime = session.events[0].time;
+								if (options.duration) {
+									var events = [];
+									var endTime = session.startTime + options.duration;
+									for (var i = 0; i < session.events.length; i++) {
+										var event = session.events[i];
+										if (event.time <= endTime) {
+											events.push(event);
+										} else {
+											break;
+										}
+									}
+									session.events = events;
+								}
+								var lastEvent = session.events[session.events.length - 1];
+								if (options.duration && lastEvent.time < session.startTime + options.duration) {
+									lastEvent = {
+										_id: "end",
+										session: lastEvent.session,
+										event: "end",
+										time: session.startTime + options.duration,
+										args: {}
+									}
+									session.pages[session.pages.length - 1].endTime = session.startTime + options.duration;
+									session.events.push(lastEvent);
+								}
+								session.endTime = lastEvent.time;
+								session.outstandingEvents = session.events.slice();
+								var pages = [];
+								var prevPage = null;
+								for (var i = 0; i < session.pages.length; i++) {
+									var page = session.pages[i];
+									if (page.startTime <= session.startTime) {
+										prevPage = page;
+									} else if (page.startTime < session.endTime) {
+										if (page.endTime > session.endTime) {
+											page.endTime = session.endTime;
+										}
+										pages.push(page);
+									}
+								}
+								if (prevPage != null) {
+									prevPage.startTime = session.startTime;
+									pages = [prevPage].concat(pages);
+								}
+								session.pages = pages;
+								$this.session = session;
+								if (beforeCallback) {
+									beforeCallback(session);
+								}
+								$this.skipToEvent(0);
+							}
+						}
+					});
 				}
-				$this.skipToEvent(0);
+				loadEvents();
 			}
 		});
 	}
