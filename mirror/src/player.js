@@ -39,7 +39,7 @@ var PageMirrorPlayer = function(config) {
 						url = window.location.pathname + "/../" + config.url;
 					}
 					var offset = session.preExistingEvents.length + session.events.length
-					var limit = offset + 100 > session.length ? session.length - offset : 100
+					var limit = offset + 500 > session.length ? session.length - offset : 500
 					url = url + "/getEvents?session=" + id + "&offset=" + offset + "&limit=" + limit;
 					Ajax.getJSON(url, {
 						onError: options.error,
