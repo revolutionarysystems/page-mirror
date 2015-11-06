@@ -26,6 +26,7 @@ var AssetCacher = function(config, dataStore, cssParser) {
 		}, function(error, response) {
 			// If it failed to execute the request, mark asset as broken
 			if (error) {
+				console.log(error);
 				// If request timedout, mark failure against host
 				if (error.code == "ETIMEDOUT") {
 					dataStore.retrieveAssetHost(hostname, function(host) {
@@ -73,6 +74,8 @@ var AssetCacher = function(config, dataStore, cssParser) {
 								"Referer": baseUri,
 								"X-Source": "echoreflect"
 							},
+							encoding: null,
+							gzip:true,
 							timeout: config.assets.timeout
 						}, function(err, response, body) {
 							// If request fails, mark asset as broken
@@ -84,7 +87,7 @@ var AssetCacher = function(config, dataStore, cssParser) {
 							} else {
 								// If the asset is a css file, parse it for more assets
 								if (contentType && contentType.indexOf("text/css") == 0) {
-									cssParser.parse(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body, function(err, result) {
+									cssParser.parse(account, href.substring(0, href.lastIndexOf("/") + 1), '../', body.toString("utf-8"), function(err, result) {
 										if (err) {
 											logAssetEntry(asset, err, done);
 										} else {
