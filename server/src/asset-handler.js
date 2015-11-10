@@ -38,7 +38,7 @@ var AssetHandler = function(config, dataStore, assetCacher) {
 					done(null, asset.key);
 				} else {
 					// If broken and not within retry interval, leave as is
-					if (asset && asset.broken && asset.time < new Date().getTime() - config.assets.broken_check_interval) {
+					if (asset && asset.broken && asset.time > (new Date().getTime() - config.assets.broken_check_interval)) {
 						done();
 					} else {
 						// Either a new asset, or one that needs rechecking
