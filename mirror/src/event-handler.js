@@ -4,7 +4,11 @@ var PageMirrorEventHandler = function(options) {
 
 	var $this = this;
 
-	var base = options.base;
+	var assetsCached = options.assetsCached || false
+	var base = null;
+	if(assetsCached) {
+		base = options.base;
+	}
 	var mirror = new TreeMirror(document, {
 		createElement: function(tagName) {
 			if (tagName == 'SCRIPT') {

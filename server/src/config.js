@@ -1,6 +1,7 @@
 module.exports = {
 	log: "../page-mirror-server.log",
 	assets: {
+		cache: false,
 		log: "../page-mirror-assets.log",
 		stream: {
 			region: "us-east-1",

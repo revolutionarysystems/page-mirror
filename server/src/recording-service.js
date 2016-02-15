@@ -5,10 +5,14 @@ var RecordingService = function(config, dataStore, assetHandler, cssParser) {
   this.handleUpdate = function(update, done) {
     //console.log("Handling update " + update.event + " for account " + update.account + ", session " + update.session);
     async.waterfall([function(done) {
-      if (update.event == "initialize") {
-        handleAssets(update.account, update.args.base, update.args.children, done);
-      } else if (update.event == "applyChanged") {
-        handleAssets(update.account, update.args.base, update.args.addedOrMoved, done);
+      if (config.assets.cache) {
+        if (update.event == "initialize") {
+          handleAssets(update.account, update.args.base, update.args.children, done);
+        } else if (update.event == "applyChanged") {
+          handleAssets(update.account, update.args.base, update.args.addedOrMoved, done);
+        } else {
+          done();
+        }
       } else {
         done();
       }
@@ -143,7 +147,7 @@ var RecordingService = function(config, dataStore, assetHandler, cssParser) {
           startTime: update.time
         });
         dataStore.persistRecording(recording, done);
-      }else{
+      } else {
         done();
       }
     }], function(error) {
